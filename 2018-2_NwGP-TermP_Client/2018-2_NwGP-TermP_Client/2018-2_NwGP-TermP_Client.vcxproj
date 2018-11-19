@@ -150,6 +150,7 @@
     <ClInclude Include="Framework.h" />
     <ClInclude Include="Object0-BaseObject.h" />
     <ClInclude Include="Object1-PlayerObject.h" />
+    <ClInclude Include="protocol_SeunpilKim.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Scene0-BaseScene.h" />
     <ClInclude Include="Scene1-MainGameScene.h" />

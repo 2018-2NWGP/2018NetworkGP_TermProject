@@ -25,7 +25,7 @@
 
 #pragma comment(lib, "ws2_32")
 #include <winsock2.h>
-#pragma pack(1)
+#include "protocol_SeunpilKim.h"
 
 // 캡션 FPS 출력 여부
 // 항상 캡션에 FPS를 출력	(0: 비활성 | 1: 활성)
