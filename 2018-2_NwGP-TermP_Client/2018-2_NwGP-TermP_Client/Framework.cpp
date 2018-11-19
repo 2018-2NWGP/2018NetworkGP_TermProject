@@ -237,11 +237,14 @@ void CFramework::FrameAdvance()
 		Update(m_timeElapsed.count());
 		PreprocessingForDraw(); // 백버퍼 연산이므로 OnDraw가 아니다. OnDraw 이전에 백버퍼에 그려주는 연산을 한다.
 		InvalidateRect(m_hWnd, &m_rcClient, FALSE);	// False는 초기화를 하지 않는다는 뜻이다. 강제로 윈도우 메시지를 호출한다.
-		PAINTSTRUCT ps;
-		HDC hdc = ::BeginPaint(m_hWnd, &ps);																																		
-		OnDraw(hdc);
-		::EndPaint(m_hWnd, &ps);
-
+		
+		// WM_PAINT 영역, 윈도우 메시지를 쓰지 않으므로 여기서 그냥 렌더링한다.
+		{
+			PAINTSTRUCT ps;
+			HDC hdc = ::BeginPaint(m_hWnd, &ps);
+			OnDraw(hdc);
+			::EndPaint(m_hWnd, &ps);
+		}
 		if (m_timeElapsed.count() > 0.0)
 			m_fps = 1.0 / m_timeElapsed.count();
 	}
