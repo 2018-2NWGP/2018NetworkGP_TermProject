@@ -4,6 +4,8 @@
 #include "Object1-PlayerObject.h"
 #include <cassert>
 
+
+
 template<typename T>
 T GetUserDataPtr(HWND hWnd)
 {
@@ -16,6 +18,37 @@ void SetUserDataPtr(HWND hWnd, LPVOID ptr)
 
 CFramework::CFramework()
 {
+	int retval;
+
+	// 윈속 초기화
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		printf("이상 무");
+
+
+	// socket()
+	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == INVALID_SOCKET) printf("소켓생성실패");
+
+	// connect()
+	SOCKADDR_IN serveraddr;
+	ZeroMemory(&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
+	serveraddr.sin_port = htons(SERVERPORT);
+	retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
+	if (retval == SOCKET_ERROR) printf("connect 실패");
+	else
+		printf("connect 성공");
+
+	char c[BUFSIZE+1];
+
+	// 데이터 보내기
+	retval = send(sock, c, BUFSIZE, 0);
+	if (retval == SOCKET_ERROR) {
+		printf("send실패");
+	}
+	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 }
 
 CFramework::~CFramework()
@@ -111,7 +144,7 @@ void CFramework::BuildPlayer()
 
 	if (!m_pPlayer) {
 		m_pPlayer = new PlayerObject();
-		m_pPlayer->SetPosition(randW(dre), randH(dre));
+		m_pPlayer->SetPosition(800, 600);
 		if (FAILED(PlayerImage.Load(TEXT("ResourceImage\\Player001_SwordMan.png"))))
 			assert(!"플레이어 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");		
 		if (PlayerImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Player Image Load Fail"), MB_OK);
@@ -227,7 +260,8 @@ void CFramework::OnDraw(HDC hDC)
 
 void CFramework::FrameAdvance()
 {
-	//BuildPlayer();
+	
+	
 	// Get tick
 	m_timeElapsed = std::chrono::system_clock::now() - m_current_time;
 	if (m_timeElapsed.count() > MAX_FRAMETIME)
@@ -237,14 +271,11 @@ void CFramework::FrameAdvance()
 		Update(m_timeElapsed.count());
 		PreprocessingForDraw(); // 백버퍼 연산이므로 OnDraw가 아니다. OnDraw 이전에 백버퍼에 그려주는 연산을 한다.
 		InvalidateRect(m_hWnd, &m_rcClient, FALSE);	// False는 초기화를 하지 않는다는 뜻이다. 강제로 윈도우 메시지를 호출한다.
-		
-		// WM_PAINT 영역, 윈도우 메시지를 쓰지 않으므로 여기서 그냥 렌더링한다.
-		{
-			PAINTSTRUCT ps;
-			HDC hdc = ::BeginPaint(m_hWnd, &ps);
-			OnDraw(hdc);
-			::EndPaint(m_hWnd, &ps);
-		}
+		PAINTSTRUCT ps;
+		HDC hdc = ::BeginPaint(m_hWnd, &ps);																																		
+		OnDraw(hdc);
+		::EndPaint(m_hWnd, &ps);
+
 		if (m_timeElapsed.count() > 0.0)
 			m_fps = 1.0 / m_timeElapsed.count();
 	}
@@ -260,6 +291,7 @@ void CFramework::FrameAdvance()
 		, TITLE_MX_LENGTH - m_TitleLength
 		, TEXT("FPS )"));
 	SetWindowText(m_hWnd, m_CaptionTitle);
+	
 }
 
 LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)

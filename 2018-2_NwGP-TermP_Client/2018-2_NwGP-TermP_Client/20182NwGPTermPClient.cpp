@@ -57,6 +57,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		// FrameAdvance를 통해 프로그램을 돌린다.
 		myFramework.FrameAdvance();
 	}
+	
 	return (int)msg.wParam;
 }
 

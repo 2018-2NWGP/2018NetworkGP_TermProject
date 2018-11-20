@@ -3,6 +3,10 @@
 // 들어 있는 포함 파일입니다.
 //
 
+#define SERVERPORT 9000
+#define BUFSIZE    512
+
+#define SERVERIP   "127.0.0.1"
 #pragma once
 
 #include "targetver.h"
@@ -25,7 +29,7 @@
 
 #pragma comment(lib, "ws2_32")
 #include <winsock2.h>
-#include "protocol_SeunpilKim.h"
+#pragma pack(1)
 
 // 캡션 FPS 출력 여부
 // 항상 캡션에 FPS를 출력	(0: 비활성 | 1: 활성)
@@ -54,7 +58,7 @@
 #include <random>
 
 #define TITLE_MX_LENGTH 64
-#define TITLESTRING TEXT("2018-2_NetworkGameProgramming_TermProject")
+#define TITLESTRING TEXT("2018-2_NetworkGameProgramming_TermProject2")
 
 // 초기 클라이언트 크기
 #define CLIENT_WIDTH	1024
