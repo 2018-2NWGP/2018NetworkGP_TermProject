@@ -13,6 +13,8 @@ HINSTANCE hInst;                                // 현재 인스턴스입니다.
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 CFramework myFramework;
+CNetwork* pNetwork;
+
 
 // 이 코드 모듈에 들어 있는 함수의 정방향 선언입니다.
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -142,7 +144,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 								// 생성 실패시 프로그램 종료   
 	if (!hWnd) return FALSE;
-	if (!myFramework.OnCreate(hInstance, hWnd, rc)) return FALSE;
+
+	pNetwork = new CNetwork;
+	if (!myFramework.OnCreate(hInstance, hWnd, rc, pNetwork)) return FALSE;
 	// 윈도우 표시
 	ShowWindow(hWnd, nCmdShow); // 윈도우 창을 보여준다. 이게 없으면 윈도우 창이 안 보이기 떄문에 활성화가 안되므로 아무것도 못한다. 종료 조차도!
 								// 확인 : WnbdProc의 default msg handler가 DefWindowProc

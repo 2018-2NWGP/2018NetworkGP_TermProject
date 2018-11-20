@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene0-BaseScene.h"
+#include "Network.h"
 // 헤더파일에는 이 프레임워크에서 사용하는 인터페이스나 클래스의 부모 외에는 include하지 않도록 한다.
 
 template<typename Enum> // enum class의 선언형을 알려주며 인자와 대응하는 값을 반환하는 함수
@@ -39,11 +40,13 @@ private:
 	CImage PlayerImage;
 	CImage BGI;
 
+	CNetwork* m_pNetwork;
+
 public:
 	CFramework();
 	~CFramework();
 
-	bool OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT &rc); // rc는 윈도우크기이고, m_rcClient에 저장한다.
+	bool OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT &rc, CNetwork* pNetwork); // rc는 윈도우크기이고, m_rcClient에 저장한다.
 	void CreatebackBuffer();	// HBITMAP을 만든다.
 	void BuildScene();
 	void BuildPlayer();

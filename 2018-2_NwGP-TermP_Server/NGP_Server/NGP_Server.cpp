@@ -2,6 +2,7 @@
 #include <winsock2.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "NGP_Server.h"
 
 #define SERVERPORT 9000
 #define BUFSIZE    512
@@ -21,6 +22,25 @@ DWORD WINAPI ProcessClient(LPVOID arg);
 HINSTANCE hInst; // 인스턴스 핸들
 HWND hEdit; // 편집 컨트롤
 CRITICAL_SECTION cs; // 임계 영역
+
+//////////////////////////////////////////////////////////////
+// 전역 변수
+HANDLE gh_iocp;
+
+array <Client, MAX_USER> g_clients;
+
+float g_GameTime;
+
+//////////////////////////////////////////////////////////////
+
+void SendPacket(int id, void *ptr)
+{
+	char *packet = reinterpret_cast<char *>(ptr);
+	int res = send(g_clients[id].m_s, packet, sizeof(packet), 0);
+	if (0 != res) {
+		int err_no = WSAGetLastError();
+	}
+}
 
 int recvn(SOCKET s, char *buf, int len, int flags)
 {
@@ -191,9 +211,12 @@ DWORD WINAPI ServerMain(LPVOID arg)
 			break;
 		}
 
+		
+
 		//// 접속한 클라이언트 정보 출력
 		DisplayText("\r\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\r\n",
 			inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+
 
 
 		// 스레드 생성
@@ -227,6 +250,49 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	addrlen = sizeof(clientaddr);
 	getpeername(client_sock, (SOCKADDR *)&clientaddr, &addrlen);
 
+	int id = -1;
+	for (int i = 0; i < MAX_USER; ++i)
+		if (false == g_clients[i].m_isconnected) {
+			id = i;
+			break;
+		}
+	if (-1 == id) {
+		cout << "MAX USER Exceeded\n";
+	}
+	cout << "ID of new Client is [" << id << "]\n";
+	g_clients[id].m_s = client_sock;
+	//clear for reuse
+
+	g_clients[id].m_isconnected = true;
+	g_clients[id].m_x = 800;
+	g_clients[id].m_y = 600;
+	//StartRecv(id);
+
+	SC_Msg_Put_Character p;
+	p.Character_id = id;
+	p.size = sizeof(p);
+	p.type = SC_PUT_PLAYER;
+	SendPacket(id, &p);
+	//for (int i = 0; i < MAX_USER; ++i)
+	//{
+	//	//연결된 애들한테 4개 플레이어 패킷 다 보냄
+	//	if (g_clients[i].m_isconnected) {
+	//		SendPacket(i, &p);
+	//	}
+	//}
+
+	////지금 연결된 애한테 4명 어디있는지 
+	//for (int i = 0; i < MAX_USER; ++i)
+	//{
+	//	if (i == id) continue;
+	//	p.Character_id = i;
+	//	p.x = g_ppPlayer[i]->GetPosition().x;
+	//	p.y = g_ppPlayer[i]->GetPosition().z;
+
+	//	SendPacket(id, &p);
+
+	//}
+
 	while (true) {
 		// 데이터 받기
 		retval = recvn(client_sock, buf, BUFSIZE, 0);
@@ -246,3 +312,6 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
 	return 0;
 }
+
+
+

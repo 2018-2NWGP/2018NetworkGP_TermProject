@@ -18,37 +18,38 @@ void SetUserDataPtr(HWND hWnd, LPVOID ptr)
 
 CFramework::CFramework()
 {
-	int retval;
+	//int retval;
 
-	// 윈속 초기화
-	WSADATA wsa;
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-		printf("이상 무");
+	//// 윈속 초기화
+	//WSADATA wsa;
+	//if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	//	printf("이상 무");
 
 
-	// socket()
-	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == INVALID_SOCKET) printf("소켓생성실패");
+	//// socket()
+	//SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+	//if (sock == INVALID_SOCKET) printf("소켓생성실패");
 
-	// connect()
-	SOCKADDR_IN serveraddr;
-	ZeroMemory(&serveraddr, sizeof(serveraddr));
-	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
-	serveraddr.sin_port = htons(SERVERPORT);
-	retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
-	if (retval == SOCKET_ERROR) printf("connect 실패");
-	else
-		printf("connect 성공");
+	//// connect()
+	//SOCKADDR_IN serveraddr;
+	//ZeroMemory(&serveraddr, sizeof(serveraddr));
+	//serveraddr.sin_family = AF_INET;
+	//serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
+	//serveraddr.sin_port = htons(SERVERPORT);
+	//retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
+	//if (retval == SOCKET_ERROR) printf("connect 실패");
+	//else
+	//	printf("connect 성공");
 
-	char c[BUFSIZE+1];
+	//char c[BUFSIZE+1];
 
-	// 데이터 보내기
-	retval = send(sock, c, BUFSIZE, 0);
-	if (retval == SOCKET_ERROR) {
-		printf("send실패");
-	}
-	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+	//
+	//// 데이터 보내기
+	//retval = send(sock, c, BUFSIZE, 0);
+	//if (retval == SOCKET_ERROR) {
+	//	printf("send실패");
+	//}
+	//printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 }
 
 CFramework::~CFramework()
@@ -56,11 +57,12 @@ CFramework::~CFramework()
 	OnDestroy();
 }
 
-bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc)
+bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc, CNetwork* pNetwork)
 {
 	srand((unsigned int)time(NULL));
 	m_hInstance = hInstance;
 	m_hWnd = hWnd;
+	m_pNetwork = pNetwork;
 	m_rcClient = rc;
 	// 클라이언트 좌표 초기화
 	m_rcClient.right -= m_rcClient.left;
@@ -96,6 +98,10 @@ bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc)
 	// 최초의 씬은 무엇인가?
 	ChangeScene(CBaseScene::SceneTag::Main);
 	
+	m_pNetwork->Initialize(m_hWnd);
+	char c[BUFSIZE+1];
+
+	m_pNetwork->SendPacket(&c);
 
 	return (m_hWnd != NULL);
 }
