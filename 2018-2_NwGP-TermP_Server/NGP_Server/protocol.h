@@ -38,6 +38,7 @@ struct SC_Msg_Pos_Character : public Packet
 
 #define MY_SERVER_PORT 4000
 #define NONE -1
+
 //enum class Type : BYTE { Connect, Create, Delete, Move, Attack, Hit };
 //Server-> Client
 #define SC_CONNECT_PLAYER			  101

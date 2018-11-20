@@ -20,8 +20,10 @@ bool CNetwork::Initialize(HWND hWnd)
 		printf("捞惑 公");
 
 	// socket()
-	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == INVALID_SOCKET) printf("家南积己角菩");
+	m_mysocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (m_mysocket == INVALID_SOCKET) printf("家南积己角菩");
+
+	WSAAsyncSelect(m_mysocket, m_hWnd, WM_SOCKET, FD_READ);
 
 	// connect()
 	SOCKADDR_IN serveraddr;
@@ -29,11 +31,9 @@ bool CNetwork::Initialize(HWND hWnd)
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
 	serveraddr.sin_port = htons(SERVERPORT);
-	retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
-	if (retval == SOCKET_ERROR) printf("connect 角菩");
-	else
-		printf("connect 己傍");
-	//WSAAsyncSelect(m_mysocket, m_hWnd, WM_SOCKET, FD_READ);
+	retval = connect(m_mysocket, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
+	
+	
 	return true;
 }
 
@@ -46,10 +46,13 @@ void CNetwork::Finalize()
 	}
 }
 
+
+
 void CNetwork::ProcessPacket(char *ptr)
 {
-	if (ptr[1] != 0) {
-		switch (ptr[1])
+	SC_Msg_Put_Character *my_packet = reinterpret_cast<SC_Msg_Put_Character *>(ptr);
+	printf("%d", my_packet->type);
+		switch (my_packet->type)
 		{
 		case SC_PUT_PLAYER:
 		{
@@ -57,6 +60,7 @@ void CNetwork::ProcessPacket(char *ptr)
 			int id = my_packet->Character_id;
 			if (m_myid == NONE) {
 				m_myid = id;
+				printf("id is set");
 			}
 			break;
 		}
@@ -91,7 +95,7 @@ void CNetwork::ProcessPacket(char *ptr)
 			printf("Unknown PACKET type [%d]\n", ptr[1]);
 			break;
 		}
-	}
+	
 
 }
 
@@ -99,12 +103,11 @@ void CNetwork::ProcessPacket(char *ptr)
 //
 void CNetwork::ReadPacket()
 {
-	DWORD ioflag = 0;
-	DWORD iobyte = 0;
-	int errorcount = 0;
-
 	int ret = recv(m_mysocket, m_buffer, sizeof(m_buffer), 0);
-	ProcessPacket(m_buffer);
+	if (ret > 0) {
+		ProcessPacket(m_buffer);
+	}
+
 	/*BYTE *ptr = reinterpret_cast<BYTE *>(m_recv_buffer);
 
 	while (0 != iobyte) {

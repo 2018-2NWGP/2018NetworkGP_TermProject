@@ -200,7 +200,7 @@ DWORD WINAPI ServerMain(LPVOID arg)
 	SOCKET client_sock;
 	SOCKADDR_IN clientaddr;
 	int addrlen;
-	HANDLE hThread[THREADCNT];
+	HANDLE hThread[THREADCNT]{ 0 };
 
 	while (1) {
 		// accept()
@@ -217,15 +217,40 @@ DWORD WINAPI ServerMain(LPVOID arg)
 		DisplayText("\r\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\r\n",
 			inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 
+		int id = -1;
+		for (int i = 0; i < MAX_USER; ++i)
+			if (false == g_clients[i].m_isconnected) {
+				id = i;
+				break;
+			}
+		if (-1 == id) {
+			cout << "MAX USER Exceeded\n";
+		}
+		cout << "ID of new Client is [" << id << "]\n";
+		g_clients[id].m_s = client_sock;
+		//clear for reuse
 
+		g_clients[id].m_isconnected = true;
+		g_clients[id].m_x = 800;
+		g_clients[id].m_y = 600;
+		//StartRecv(id);
+
+		SC_Msg_Put_Character p;
+		p.Character_id = id;
+		p.size = sizeof(p);
+		p.type = SC_PUT_PLAYER;
+		SendPacket(id, &p);
+		DisplayText("%d", p.type);
 
 		// 스레드 생성
 		for (int i = 0; i < THREADCNT; ++i)
 		{
-			hThread[i] = CreateThread(NULL, 0, ProcessClient,
-				(LPVOID)client_sock, 0, NULL);
-			if (hThread == NULL) { closesocket(client_sock); }
-			else { CloseHandle(hThread); }
+			if(!hThread[i])
+				hThread[i] = CreateThread(NULL, 0, ProcessClient,
+					(LPVOID)client_sock, 0, NULL);
+			break;
+			//if (hThread == NULL) { closesocket(client_sock); }
+			//else { CloseHandle(hThread); }
 		}
 	}
 
@@ -250,29 +275,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	addrlen = sizeof(clientaddr);
 	getpeername(client_sock, (SOCKADDR *)&clientaddr, &addrlen);
 
-	int id = -1;
-	for (int i = 0; i < MAX_USER; ++i)
-		if (false == g_clients[i].m_isconnected) {
-			id = i;
-			break;
-		}
-	if (-1 == id) {
-		cout << "MAX USER Exceeded\n";
-	}
-	cout << "ID of new Client is [" << id << "]\n";
-	g_clients[id].m_s = client_sock;
-	//clear for reuse
-
-	g_clients[id].m_isconnected = true;
-	g_clients[id].m_x = 800;
-	g_clients[id].m_y = 600;
-	//StartRecv(id);
-
-	SC_Msg_Put_Character p;
-	p.Character_id = id;
-	p.size = sizeof(p);
-	p.type = SC_PUT_PLAYER;
-	SendPacket(id, &p);
+	
 	//for (int i = 0; i < MAX_USER; ++i)
 	//{
 	//	//연결된 애들한테 4개 플레이어 패킷 다 보냄

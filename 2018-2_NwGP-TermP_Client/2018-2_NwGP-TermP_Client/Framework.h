@@ -40,6 +40,7 @@ private:
 	CImage PlayerImage;
 	CImage BGI;
 
+	
 	CNetwork* m_pNetwork;
 
 public:
@@ -81,6 +82,8 @@ public:
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 	void ChangeScene(CBaseScene::SceneTag tag);
+
+	void RecvPacket();
 private:
 	CBaseScene * arrScene[CBaseScene::SceneTag::Count];
 	CBaseScene * m_pCurrScene;

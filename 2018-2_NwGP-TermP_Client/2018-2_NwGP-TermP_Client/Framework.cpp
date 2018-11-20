@@ -5,7 +5,6 @@
 #include <cassert>
 
 
-
 template<typename T>
 T GetUserDataPtr(HWND hWnd)
 {
@@ -18,38 +17,7 @@ void SetUserDataPtr(HWND hWnd, LPVOID ptr)
 
 CFramework::CFramework()
 {
-	//int retval;
-
-	//// 윈속 초기화
-	//WSADATA wsa;
-	//if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-	//	printf("이상 무");
-
-
-	//// socket()
-	//SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
-	//if (sock == INVALID_SOCKET) printf("소켓생성실패");
-
-	//// connect()
-	//SOCKADDR_IN serveraddr;
-	//ZeroMemory(&serveraddr, sizeof(serveraddr));
-	//serveraddr.sin_family = AF_INET;
-	//serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
-	//serveraddr.sin_port = htons(SERVERPORT);
-	//retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
-	//if (retval == SOCKET_ERROR) printf("connect 실패");
-	//else
-	//	printf("connect 성공");
-
-	//char c[BUFSIZE+1];
-
-	//
-	//// 데이터 보내기
-	//retval = send(sock, c, BUFSIZE, 0);
-	//if (retval == SOCKET_ERROR) {
-	//	printf("send실패");
-	//}
-	//printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+	
 }
 
 CFramework::~CFramework()
@@ -99,10 +67,7 @@ bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc, CNetw
 	ChangeScene(CBaseScene::SceneTag::Main);
 	
 	m_pNetwork->Initialize(m_hWnd);
-	char c[BUFSIZE+1];
-
-	m_pNetwork->SendPacket(&c);
-
+	
 	return (m_hWnd != NULL);
 }
 
@@ -234,6 +199,8 @@ void CFramework::Update(float fTimeElapsed)
 	m_pPlayer->Update(fTimeElapsed);
 
 	m_pCurrScene->Update(fTimeElapsed);
+
+	//m_pNetwork->ReadPacket();
 }
 
 void CFramework::SetBKColor(COLORREF color)
@@ -342,7 +309,13 @@ LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 		::SetUserDataPtr(hWnd, NULL);
 		::PostQuitMessage(0);
 		break;
-
+	case WM_SOCKET:
+		switch (WSAGETSELECTEVENT(lParam)) {
+		case FD_READ:
+			self->RecvPacket();
+			break;
+		}
+		break;
 	default:
 		return self->OnProcessingWindowMessage(hWnd, nMessageID, wParam, lParam);
 	}
@@ -353,4 +326,9 @@ LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 void CFramework::ChangeScene(CBaseScene::SceneTag tag)
 {
 	m_pCurrScene = arrScene[tag];
+}
+
+void CFramework::RecvPacket()
+{
+	m_pNetwork->ReadPacket();
 }

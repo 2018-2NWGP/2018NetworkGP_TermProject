@@ -19,6 +19,7 @@ public:
 	{
 		m_Tag = tag;
 		m_pFramework = pFramework;
+		//m_pNetwork = pNetwork;
 	}
 	virtual ~CBaseScene();	
 	/* CBaseScene을 상속받은 타이틀씬의 소멸자도 ~CBaseScene();이 된다. 그럼 타이틀씬이 소멸할 때 이 소멸자도 받아온다.
@@ -47,4 +48,5 @@ protected:
 	Framework* m_pFramework;	// 인자로 받아오는게 아니라 동적할당을 해온다.
 	CImage* m_BackGroundImage = nullptr;
 	PlayerObject * m_pPlayer = nullptr;
+	//CNetwork* m_pNetwork{ NULL };
 };

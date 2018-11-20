@@ -7,6 +7,7 @@
 #define BUFSIZE    512
 
 #define SERVERIP   "127.0.0.1"
+#define WM_SOCKET		WM_USER+1
 #pragma once
 
 #include "targetver.h"
