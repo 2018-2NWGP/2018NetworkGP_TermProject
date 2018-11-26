@@ -3,7 +3,6 @@
 
 class Framework;
 class PlayerObject;
-class CNetwork;
 
 class CBaseScene
 {
@@ -41,22 +40,13 @@ public:
 	virtual bool ProcessInput(unsigned char* KeyBuffer) = 0;
 	
 	virtual void SetBackgroundImage(CImage* img) { m_BackGroundImage = img; }
-	
-	virtual void BuildPlayer() = 0;
-	virtual void SetPlayer(PlayerObject** ppPlayer = nullptr) { (ppPlayer == nullptr) ? (m_ppPlayer = new PlayerObject*[MAX_USER]) : (m_ppPlayer = ppPlayer);}
-	virtual void SetMyPlayerImage(CImage* img);
-	virtual void SetPlayerImageAll(CImage* img);
-	virtual void SetPlayerImageByID(unsigned int id, CImage* img);
-	virtual PlayerObject** GetPlayer() const { return m_ppPlayer; }
 	virtual CImage* GetBackgroundImage() const { return m_BackGroundImage; }
-
-	virtual void SetNetwork(CNetwork* pNetwork) { m_pNetwork = pNetwork; }
-
+	void SetPlayer(PlayerObject* pPlayer) { m_pPlayer = pPlayer; }
+	
 protected:
 	SceneTag m_Tag;
 	Framework* m_pFramework;	// 인자로 받아오는게 아니라 동적할당을 해온다.
 	CImage* m_BackGroundImage = nullptr;
-	
-	PlayerObject ** m_ppPlayer = { nullptr };
-	CNetwork* m_pNetwork{ NULL };
+	PlayerObject * m_pPlayer = nullptr;
+	//CNetwork* m_pNetwork{ NULL };
 };

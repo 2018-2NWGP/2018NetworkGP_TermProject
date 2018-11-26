@@ -36,9 +36,10 @@ private:
 	TCHAR m_CaptionTitle[TITLE_MX_LENGTH];	// SetWindow 함수에다가 이 타이틀을 집어넣는다.
 	int m_TitleLength;
 
-	
+	PlayerObject * m_pPlayer = nullptr;
 	CImage PlayerImage;
 	CImage BGI;
+
 	
 	CNetwork* m_pNetwork;
 
