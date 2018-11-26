@@ -10,6 +10,8 @@ private:
 	int m_nHP = 100;	
 	int m_nAttack = 15;
 
+	ObjectState m_State = idle;		// 플레이어의 현재 상태
+
 	double m_dMoveSpeed = 100.0;	// 이동속도
 	float WalkMotionSpeed = 5.0f;	// 이동 애니메이션 속도
 	unsigned char WalkFrame = 0;	// 걷는 중 어느 이미지의 프레임을 그릴 지 사용
@@ -21,12 +23,9 @@ private:
 	float walkAnimation_runtime = 0.0f;		// 걷는 애니메이션 속도를 제어하기 위한 변수
 	float attackAnimation_runtime = 0.0f;	// 공격 애니메이션 속도를 제어하기 위한 변수
 	
-
 	// 맵 스크롤링을 위하여 월드 좌표와 화면 좌표를 바꿔주기 위한 변수
 	int window_left = 0;
 	int window_bottom = 0;
-
-	ObjectState m_State = idle;
 
 public:
 	PlayerObject();

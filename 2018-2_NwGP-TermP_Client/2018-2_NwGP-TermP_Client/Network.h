@@ -1,9 +1,6 @@
 
 #pragma once
 
-
-
-
 class CNetwork
 {
 public:
@@ -23,6 +20,4 @@ public:
 	void ReadPacket();
 	void SendPacket(void *ptr);
 
-
 };
-
