@@ -25,8 +25,6 @@ CRITICAL_SECTION cs; // 임계 영역
 
 //////////////////////////////////////////////////////////////
 // 전역 변수
-HANDLE gh_iocp;
-
 array <Client, MAX_USER> g_clients;
 
 float g_GameTime;
@@ -41,6 +39,84 @@ void SendPacket(int id, void *ptr)
 		int err_no = WSAGetLastError();
 	}
 }
+
+void ProcessPacket(char *ptr)
+{
+	SC_Msg_Put_Character *my_packet = reinterpret_cast<SC_Msg_Put_Character *>(ptr);
+	printf("%d", my_packet->type);
+	switch (my_packet->type)
+	{
+	case CS_MOVE_DOWN:
+	{
+		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
+		g_clients[my_packet->Character_id].m_x = my_packet->x;
+		g_clients[my_packet->Character_id].m_y = my_packet->y - 1;
+		SC_Msg_Pos_Character p;
+		p.Character_id = my_packet->Character_id;
+		p.size = sizeof(p);
+		p.type = SC_POS_PLAYER;
+		p.x = g_clients[my_packet->Character_id].m_x;
+		p.y = g_clients[my_packet->Character_id].m_y;
+		SendPacket(p.Character_id, &p);
+		DisplayText("DOWN\n");
+		break;
+	}
+	case CS_MOVE_UP:
+	{
+		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
+		g_clients[my_packet->Character_id].m_x = my_packet->x;
+		g_clients[my_packet->Character_id].m_y = my_packet->y + 1;
+		SC_Msg_Pos_Character p;
+		p.Character_id = my_packet->Character_id;
+		p.size = sizeof(p);
+		p.type = SC_POS_PLAYER;
+		p.x = g_clients[my_packet->Character_id].m_x;
+		p.y = g_clients[my_packet->Character_id].m_y;
+		SendPacket(p.Character_id, &p);
+		DisplayText("UP\n");
+		break;
+	}case CS_MOVE_RIGHT:
+	{
+		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
+		g_clients[my_packet->Character_id].m_x = my_packet->x + 1;
+		g_clients[my_packet->Character_id].m_y = my_packet->y;
+		SC_Msg_Pos_Character p;
+		p.Character_id = my_packet->Character_id;
+		p.size = sizeof(p);
+		p.type = SC_POS_PLAYER;
+		p.x = g_clients[my_packet->Character_id].m_x;
+		p.y = g_clients[my_packet->Character_id].m_y;
+		SendPacket(p.Character_id, &p);
+		DisplayText("RIGHT\n");
+		break;
+	}case CS_MOVE_LEFT:
+	{
+		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
+		g_clients[my_packet->Character_id].m_x = my_packet->x - 1;
+		g_clients[my_packet->Character_id].m_y = my_packet->y;
+		SC_Msg_Pos_Character p;
+		p.Character_id = my_packet->Character_id;
+		p.size = sizeof(p);
+		p.type = SC_POS_PLAYER;
+		p.x = g_clients[my_packet->Character_id].m_x;
+		p.y = g_clients[my_packet->Character_id].m_y;
+		SendPacket(p.Character_id, &p);
+		DisplayText("LEFT\n");
+		break;
+	}
+	
+
+	default:
+		printf("Unknown PACKET type [%d]\n", ptr[1]);
+		break;
+	}
+
+
+}
+
+
+//
+
 
 int recvn(SOCKET s, char *buf, int len, int flags)
 {
@@ -59,6 +135,15 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 	}
 
 	return (len - left);
+}
+
+void ReadPacket(SOCKET sock, char* packet)
+{
+	int ret = recvn(sock, packet, sizeof(packet), 0);
+	if (ret > 0) {
+		ProcessPacket(packet);
+	}
+
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -210,8 +295,9 @@ DWORD WINAPI ServerMain(LPVOID arg)
 			err_display("accept()");
 			break;
 		}
-
-		
+		//소켓 타임아웃 설정
+		DWORD recvTimeout = 5000;  // 5초.
+		setsockopt(client_sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
 
 		//// 접속한 클라이언트 정보 출력
 		DisplayText("\r\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\r\n",
@@ -240,7 +326,7 @@ DWORD WINAPI ServerMain(LPVOID arg)
 		p.size = sizeof(p);
 		p.type = SC_PUT_PLAYER;
 		SendPacket(id, &p);
-		DisplayText("%d", p.type);
+		//DisplayText("%d", p.type);
 
 		// 스레드 생성
 		for (int i = 0; i < THREADCNT; ++i)
@@ -270,42 +356,34 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	SOCKADDR_IN clientaddr;
 	int addrlen;
 	char buf[BUFSIZE + 1];
-
+	int sync{ NONE };
 	// 클라이언트 정보 얻기
 	addrlen = sizeof(clientaddr);
 	getpeername(client_sock, (SOCKADDR *)&clientaddr, &addrlen);
 
-	
-	//for (int i = 0; i < MAX_USER; ++i)
-	//{
-	//	//연결된 애들한테 4개 플레이어 패킷 다 보냄
-	//	if (g_clients[i].m_isconnected) {
-	//		SendPacket(i, &p);
-	//	}
-	//}
-
-	////지금 연결된 애한테 4명 어디있는지 
-	//for (int i = 0; i < MAX_USER; ++i)
-	//{
-	//	if (i == id) continue;
-	//	p.Character_id = i;
-	//	p.x = g_ppPlayer[i]->GetPosition().x;
-	//	p.y = g_ppPlayer[i]->GetPosition().z;
-
-	//	SendPacket(id, &p);
-
-	//}
-
 	while (true) {
+		sync++;
+		//50ms마다 한번씩 위치 좌표 보내줌
+		if (sync > 50) {
+			SC_Msg_Pos_Character p;
+			//p.Character_id = 0;
+			p.size = sizeof(p);
+			p.type = SC_POS_PLAYER;
+			p.x = g_clients[0].m_x;
+			p.y = g_clients[0].m_y;
+			SendPacket(0, &p);
+			sync = 0;
+		}
+
 		// 데이터 받기
-		retval = recvn(client_sock, buf, BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) {
+		ReadPacket(client_sock, buf);
+		/*if (retval == SOCKET_ERROR) {
 			err_display("recv()");
 			DisplayText("recv에러입니다");
 			break;
 		}
 		else
-			DisplayText("잘 받았습니다");
+			DisplayText("잘 받았습니다");*/
 	}
 
 	// closesocket()
