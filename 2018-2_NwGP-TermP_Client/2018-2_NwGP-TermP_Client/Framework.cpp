@@ -60,7 +60,6 @@ bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc, CNetw
 	m_current_time = std::chrono::system_clock::now();
 	m_fps = 0;
 
-	BuildPlayer();
 	// 씬 생성
 	BuildScene();
 	// 최초의 씬은 무엇인가?
@@ -104,9 +103,12 @@ void CFramework::BuildScene()
 	if (BGI.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Background Image Load Fail"), MB_OK);	
 	arrScene[CBaseScene::SceneTag::Main]->SetBackgroundImage(&BGI);
 	arrScene[CBaseScene::SceneTag::Main]->SetNetwork(m_pNetwork);
+	BuildPlayer();
 	arrScene[CBaseScene::SceneTag::Main]->SetMyPlayerImage(&PlayerImage);
 	arrScene[CBaseScene::SceneTag::Main]->SetPlayer();
 	arrScene[CBaseScene::SceneTag::Main]->BuildPlayer();
+
+	m_pNetwork->m_gameScene = arrScene[CBaseScene::SceneTag::Main];
 }
 
 void CFramework::BuildPlayer()
@@ -179,7 +181,6 @@ void CFramework::Update(float fTimeElapsed)
 	if (!bProcessedByScene) {
 		
 	}
-
 
 	m_pCurrScene->Update(fTimeElapsed);
 

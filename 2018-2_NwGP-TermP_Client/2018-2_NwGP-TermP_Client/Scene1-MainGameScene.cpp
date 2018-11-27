@@ -57,10 +57,30 @@ void CMainScene::BuildPlayer()
 	std::uniform_int_distribution<> randW(32, 4800);
 	std::uniform_int_distribution<> randH(64, 3200);
 
-	if (!m_ppPlayer[m_pNetwork->m_myid]) {
+	// 발생한 이슈 : 네트워크 아이디가 -1이라서 BuildPlayer 시점에서 생성이 안됨.
+	// 해결하려고 했는데 실패한 솔루션 : BuildPlayer를 뒤에서 하자.
+	// 결과 : 펑 -> 이전 결과로 돌아옴
+	if (m_ppPlayer[m_pNetwork->m_myid] == nullptr ) {
+		printf("User ID : %d\n", m_pNetwork->m_myid);
 		m_ppPlayer[m_pNetwork->m_myid] = new PlayerObject();
 		m_ppPlayer[m_pNetwork->m_myid]->SetPosition(randW(dre), randH(dre));
 		m_ppPlayer[m_pNetwork->m_myid]->SetSize(32, 64);
 		m_ppPlayer[m_pNetwork->m_myid]->SetBackgroundSize(4800, 3200);
+	}
+}
+
+void CMainScene::BuildPlayer(int id)
+{
+	std::random_device rd;
+	std::default_random_engine dre(rd());
+	std::uniform_int_distribution<> randW(32, 4800);
+	std::uniform_int_distribution<> randH(64, 3200);
+
+	if (m_ppPlayer[id] == nullptr) {
+		printf("User ID : %d\n", m_pNetwork->m_myid);
+		m_ppPlayer[id] = new PlayerObject();
+		m_ppPlayer[id]->SetPosition(randW(dre), randH(dre));
+		m_ppPlayer[id]->SetSize(32, 64);
+		m_ppPlayer[id]->SetBackgroundSize(4800, 3200);
 	}
 }

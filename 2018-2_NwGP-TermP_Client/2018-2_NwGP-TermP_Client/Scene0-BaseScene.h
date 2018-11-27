@@ -43,7 +43,14 @@ public:
 	virtual void SetBackgroundImage(CImage* img) { m_BackGroundImage = img; }
 	
 	virtual void BuildPlayer() = 0;
-	virtual void SetPlayer(PlayerObject** ppPlayer = nullptr) { (ppPlayer == nullptr) ? (m_ppPlayer = new PlayerObject*[MAX_USER]) : (m_ppPlayer = ppPlayer);}
+	virtual void SetPlayer(PlayerObject** ppPlayer = nullptr) { 
+		if (ppPlayer == nullptr) { 
+			m_ppPlayer = new PlayerObject*[MAX_USER]; 
+			::ZeroMemory(m_ppPlayer, sizeof(PlayerObject*) * MAX_USER);
+			//for (int i = 0; i < MAX_USER; ++i) m_ppPlayer[i] = nullptr; 
+		} 
+		else m_ppPlayer = ppPlayer;
+	}
 	virtual void SetMyPlayerImage(CImage* img);
 	virtual void SetPlayerImageAll(CImage* img);
 	virtual void SetPlayerImageByID(unsigned int id, CImage* img);

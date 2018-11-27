@@ -59,9 +59,8 @@ void PlayerObject::Update(float fTimeElapsed)
 	case melee_attack:
 		attackAnimation_runtime += (AttackMotionSpeed * fTimeElapsed);
 		AttackFrame = static_cast<unsigned char>(attackAnimation_runtime) % 3;
-		if (AttackFrame > 1) {
+		if (AttackFrame > 1)
 			m_State = idle;
-		}
 		break;
 	default:
 		break;
