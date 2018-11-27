@@ -1,7 +1,7 @@
 
 #pragma once
 
-
+class PlayerObject;
 
 
 class CNetwork
@@ -13,7 +13,7 @@ public:
 
 protected:
 	HWND m_hWnd;
-
+	PlayerObject* m_pPlayer{ NULL };
 public:
 	CNetwork();
 	~CNetwork();
@@ -22,7 +22,8 @@ public:
 	void Finalize();
 	void ReadPacket();
 	void SendPacket(void *ptr);
-
+	
+	void SetPlayer(PlayerObject* player) { m_pPlayer = player; }
 
 };
 

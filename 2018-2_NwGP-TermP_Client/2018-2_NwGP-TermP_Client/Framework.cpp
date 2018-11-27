@@ -123,6 +123,7 @@ void CFramework::BuildPlayer()
 		m_pPlayer->SetImage(&PlayerImage);
 		m_pPlayer->SetSize(32, 64);
 		m_pPlayer->SetBackgroundSize(4800, 3200);
+		m_pNetwork->SetPlayer(m_pPlayer);
 	}
 }
 
@@ -132,9 +133,32 @@ void CFramework::ReleaseScene()
 
 bool CFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
+	int x = 0, y = 0;
 	switch (nMessageID)
 	{
 	case WM_KEYDOWN:
+		
+		if (wParam == VK_RIGHT)	x += 1;
+		if (wParam == VK_LEFT)	x -= 1;
+		if (wParam == VK_UP)	y -= 1;
+		if (wParam == VK_DOWN)	y += 1;
+		CS_Msg_Pos_Character p;
+		p.size = sizeof(p);
+		p.Character_id = m_pNetwork->m_myid;
+		p.x = m_pPlayer->GetPosition().x;
+		p.y = m_pPlayer->GetPosition().y;
+
+		if (0 != x) {
+			if (1 == x) p.type = CS_MOVE_RIGHT;
+			else p.type = CS_MOVE_LEFT;
+			m_pNetwork->SendPacket(&p);
+
+		}
+		if (0 != y) {
+			if (1 == y) p.type = CS_MOVE_DOWN;
+			else p.type = CS_MOVE_UP;
+			m_pNetwork->SendPacket(&p);
+		}
 		return true;
 	case WM_KEYUP:
 		switch (wParam)
@@ -191,10 +215,11 @@ void CFramework::Update(float fTimeElapsed)
 		if (pKeysBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_DOWN;
 		if (pKeysBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
 		if (pKeysBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
+		
 		if ((pKeysBuffer['a'] & 0xF0) || (pKeysBuffer['A'] & 0xF0)) m_pPlayer->SetState(melee_attack);
 
 		m_pPlayer->SetDirection(dwDirection);
-		// printf("x : %.2lf, y : %.2lf\n", m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y);
+		//printf("x : %.2lf, y : %.2lf\n", m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y);
 	}
 	m_pPlayer->Update(fTimeElapsed);
 

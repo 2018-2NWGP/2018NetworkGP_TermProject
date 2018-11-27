@@ -18,10 +18,15 @@ struct SC_Msg_Put_Character : public Packet
 struct SC_Msg_Pos_Character : public Packet
 {
 	BYTE Character_id;
-	float x;
-	float y;
+	int x;
+	int y;
 };
-
+struct CS_Msg_Pos_Character : public Packet
+{
+	BYTE Character_id;
+	int x;
+	int y;
+};
 
 #pragma pack(pop)
 
@@ -44,10 +49,14 @@ struct SC_Msg_Pos_Character : public Packet
 #define SC_CONNECT_PLAYER			  101
 #define SC_PUT_PLAYER				  102
 #define SC_REMOVE_PLAYER			  103
-#define SC_MOVE_PLAYER				  104
+#define SC_POS_PLAYER				  104
 
 //Client->Server
-#define CS_MOVE_PLAYER				  201
+#define CS_MOVE_RIGHT				  201
+#define CS_MOVE_UP					  202
+#define CS_MOVE_DOWN				  203
+#define CS_MOVE_LEFT				  204
+
 
 
 
