@@ -60,6 +60,7 @@ bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc, CNetw
 	m_current_time = std::chrono::system_clock::now();
 	m_fps = 0;
 
+	BuildPlayer();
 	// 씬 생성
 	BuildScene();
 	// 최초의 씬은 무엇인가?
@@ -102,21 +103,28 @@ void CFramework::BuildScene()
 		assert(!"필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
 	if (BGI.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Background Image Load Fail"), MB_OK);	
 	arrScene[CBaseScene::SceneTag::Main]->SetBackgroundImage(&BGI);
-	arrScene[CBaseScene::SceneTag::Main]->SetNetwork(m_pNetwork);
-	BuildPlayer();
-	arrScene[CBaseScene::SceneTag::Main]->SetMyPlayerImage(&PlayerImage);
-	arrScene[CBaseScene::SceneTag::Main]->SetPlayer();
-	arrScene[CBaseScene::SceneTag::Main]->BuildPlayer();
-
-	m_pNetwork->m_gameScene = arrScene[CBaseScene::SceneTag::Main];
+	arrScene[CBaseScene::SceneTag::Main]->SetPlayer(m_pPlayer);
 }
 
 void CFramework::BuildPlayer()
 {
-	if (FAILED(PlayerImage.Load(TEXT("ResourceImage\\Player001_SwordMan.png"))))
-		assert(!"플레이어 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
-	if (PlayerImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Player Image Load Fail"), MB_OK);
-	// PlayerImage.Create(CLIENT_WIDTH, CLIENT_HEIGHT, 24);	// DC 만들어주는 버그 펑펑 터지는 함수
+	std::random_device rd;
+	std::default_random_engine dre(rd());
+	std::uniform_int_distribution<> randW(32, 4800);
+	std::uniform_int_distribution<> randH(64, 3200);
+
+	if (!m_pPlayer) {
+		m_pPlayer = new PlayerObject();
+		m_pPlayer->SetPosition(800, 600);
+		if (FAILED(PlayerImage.Load(TEXT("ResourceImage\\Player001_SwordMan.png"))))
+			assert(!"플레이어 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");		
+		if (PlayerImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Player Image Load Fail"), MB_OK);
+		// PlayerImage.Create(CLIENT_WIDTH, CLIENT_HEIGHT, 24);	// DC 만들어주는 버그 펑펑 터지는 함수
+		m_pPlayer->SetImage(&PlayerImage);
+		m_pPlayer->SetSize(32, 64);
+		m_pPlayer->SetBackgroundSize(4800, 3200);
+		m_pNetwork->SetPlayer(m_pPlayer);
+	}
 }
 
 void CFramework::ReleaseScene()
@@ -125,9 +133,36 @@ void CFramework::ReleaseScene()
 
 bool CFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
+	int x = 0, y = 0;
 	switch (nMessageID)
 	{
 	case WM_KEYDOWN:
+		
+		if (wParam == VK_RIGHT)	x += 1;
+		if (wParam == VK_LEFT)	x -= 1;
+		if (wParam == VK_UP)	y -= 1;
+		if (wParam == VK_DOWN)	y += 1;
+		int protocol;
+		CS_Msg_Pos_Character p;
+		p.size = sizeof(p);
+		p.Character_id = m_pNetwork->m_myid;
+		p.x = m_pPlayer->GetPosition().x;
+		p.y = m_pPlayer->GetPosition().y;
+		
+		protocol = CS_MOVE_RIGHT;
+		//p.type = CS_MOVE_RIGHT;
+		send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
+		if (0 != x) {
+			if (1 == x) p.type = CS_MOVE_RIGHT;
+			else p.type = CS_MOVE_LEFT;
+			m_pNetwork->SendPacket(&p);
+			printf("\n%d, %d, %d, %d,%d\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
+		}
+		if (0 != y) {
+			if (1 == y) p.type = CS_MOVE_DOWN;
+			else p.type = CS_MOVE_UP;
+			m_pNetwork->SendPacket(&p);
+		}
 		return true;
 	case WM_KEYUP:
 		switch (wParam)
@@ -174,13 +209,26 @@ void CFramework::Update(float fTimeElapsed)
 {
 	static UCHAR pKeysBuffer[256];
 	bool bProcessedByScene = false;
-	// 해당 씬의 ProcessInput 함수를 실행
+	// 플레이어를 조작하지 않는 화면에서는 해당 씬의 ProcessInput 함수를 실행
 	if (GetKeyboardState(pKeysBuffer) && m_pCurrScene) bProcessedByScene = m_pCurrScene->ProcessInput(pKeysBuffer);
-
-	// ProcessInput 함수의 결과값에 따라 들어오는 제어문
-	if (!bProcessedByScene) {
+	// 플레이어를 조작하는 화면에서는 아래의 제어문 진입
+	if (!bProcessedByScene)
+	{
+		DWORD dwDirection = 0;
+		/*
+		if (pKeysBuffer[VK_UP] & 0xF0) dwDirection |= DIR_UP;
+		if (pKeysBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_DOWN;
+		if (pKeysBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
+		if (pKeysBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
 		
+		if ((pKeysBuffer['a'] & 0xF0) || (pKeysBuffer['A'] & 0xF0)) m_pPlayer->SetState(melee_attack);
+		*/
+		if(dwDirection == 0)
+			m_pPlayer->SetDirection(dwDirection);
+
+		//printf("x : %.2lf, y : %.2lf\n", m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y);
 	}
+	m_pPlayer->Update(fTimeElapsed);
 
 	m_pCurrScene->Update(fTimeElapsed);
 
@@ -206,6 +254,7 @@ void CFramework::PreprocessingForDraw()
 	::SetStretchBltMode(m_hDC, COLORONCOLOR);	// 쓰는 범위가 달라서 늘어나거나 줄어들 여지가 있는 경우 덮어쓴다.
 
 	m_pCurrScene->Render(m_hDC);
+	m_pPlayer->Render(m_hDC);
 }
 
 void CFramework::OnDraw(HDC hDC)
@@ -216,6 +265,8 @@ void CFramework::OnDraw(HDC hDC)
 
 void CFramework::FrameAdvance()
 {
+	
+	
 	// Get tick
 	m_timeElapsed = std::chrono::system_clock::now() - m_current_time;
 	if (m_timeElapsed.count() > MAX_FRAMETIME)

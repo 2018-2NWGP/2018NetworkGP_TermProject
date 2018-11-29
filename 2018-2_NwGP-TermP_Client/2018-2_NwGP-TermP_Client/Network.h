@@ -1,6 +1,8 @@
 
 #pragma once
-class CBaseScene;
+
+class PlayerObject;
+
 
 class CNetwork
 {
@@ -8,11 +10,10 @@ public:
 	SOCKET  m_mysocket{ NULL };
 	char	m_buffer[MAX_BUFF_SIZE];
 	int		m_myid{ NONE };
-	CBaseScene* m_gameScene = nullptr;
 
 protected:
 	HWND m_hWnd;
-
+	PlayerObject* m_pPlayer{ NULL };
 public:
 	CNetwork();
 	~CNetwork();
@@ -21,5 +22,8 @@ public:
 	void Finalize();
 	void ReadPacket();
 	void SendPacket(void *ptr);
+	
+	void SetPlayer(PlayerObject* player) { m_pPlayer = player; }
 
 };
+

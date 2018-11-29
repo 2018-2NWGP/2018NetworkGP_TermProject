@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Network.h"
+#include "Object1-PlayerObject.h"
 
 CNetwork::CNetwork()
 {
@@ -51,50 +52,42 @@ void CNetwork::Finalize()
 void CNetwork::ProcessPacket(char *ptr)
 {
 	SC_Msg_Put_Character *my_packet = reinterpret_cast<SC_Msg_Put_Character *>(ptr);
-	printf("%d", my_packet->type);
-		switch (my_packet->type)
-		{
-		case SC_PUT_PLAYER:
-		{
-			SC_Msg_Put_Character *my_packet = reinterpret_cast<SC_Msg_Put_Character *>(ptr);
-			int id = my_packet->Character_id;
-			if (m_myid == NONE) {
-				m_myid = id;
-				printf("id is set");
-			}
-			break;
+	switch (my_packet->type)
+	{
+	case SC_PUT_PLAYER:
+	{
+		SC_Msg_Put_Character *my_packet = reinterpret_cast<SC_Msg_Put_Character *>(ptr);
+		int id = my_packet->Character_id;
+		printf("%d\n", id);
+		if (m_myid == NONE) {
+			m_myid = id;
+			//printf("id is set");
 		}
-		//case SC_POS:
-		//{
-		//	if (!m_gameLoaded) break;
-
-		//	SC_Msg_Pos_Character *my_packet = reinterpret_cast<SC_Msg_Pos_Character *>(ptr);
-		//	int id = my_packet->Character_id;
-		//	if (id == m_myid) {
-		//		if (m_ppPlayer[id]->GetUpdateTime() <= my_packet->updatetime)
-		//		{
-		//			m_ppPlayer[id]->SetPosition(my_packet->x, my_packet->y);
-		//			//m_ppPlayer[id]->SyncAnimation((AnimationsType)my_packet->state, my_packet->frameTime);
-		//			m_ppPlayer[id]->SetUpdateTime(my_packet->updatetime);
-		//			m_ppPlayer[id]->SetLevel(my_packet->level, my_packet->maxexp, my_packet->exp);
-		//		}
-		//	}
-		//	else if (id < NPC_START) {
-		//		if (m_ppPlayer[id]->GetUpdateTime() <= my_packet->updatetime)
-		//		{
-		//			m_ppPlayer[id]->SetPosition(my_packet->x, my_packet->y);
-		//			//m_ppPlayer[id]->SyncAnimation((AnimationsType)my_packet->state, my_packet->frameTime);
-		//			m_ppPlayer[id]->SetUpdateTime(my_packet->updatetime);
-		//			m_ppPlayer[id]->SetLevel(my_packet->level, my_packet->maxexp, my_packet->exp);
-		//		}
-		//	}
-		//	break;
-		//}
-		
-		default:
-			printf("Unknown PACKET type [%d]\n", ptr[1]);
-			break;
-		}
+		break;
+	}
+	case SC_POS_PLAYER:
+	{
+		SC_Msg_Pos_Character *my_packet = reinterpret_cast<SC_Msg_Pos_Character *>(ptr);
+		printf("%d, %d, %d\n", my_packet->Character_id, my_packet->x, my_packet->y);
+		//m_pPlayer->SetPosition(my_packet->x, my_packet->y);
+		DWORD dwDirection = 0;
+		if (my_packet->dir == 8) dwDirection = DIR_UP;
+		if (my_packet->dir == 2) dwDirection = DIR_DOWN;
+		if (my_packet->dir == 4) dwDirection = DIR_LEFT;
+		if (my_packet->dir == 6) dwDirection = DIR_RIGHT;
+		printf("%d\n", my_packet->dir);
+		m_pPlayer->SetDirection(dwDirection);
+		m_pPlayer->SetState(walking);
+		m_pPlayer->Update();
+		break;
+	}
+	
+	
+	
+	default:
+		printf("Unknown PACKET type [%d]\n", ptr[1]);
+		break;
+	}
 	
 
 }
@@ -135,7 +128,7 @@ void CNetwork::SendPacket(void* ptr)
 {
 	char *packet = reinterpret_cast<char *>(ptr);
 	
-	int res = send(m_mysocket, packet, sizeof(packet), 0);
-
+	int res = send(m_mysocket, packet, sizeof(packet) + sizeof(int), 0);
+	printf("SenT!\n");
 }
 

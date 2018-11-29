@@ -40,79 +40,84 @@ void SendPacket(int id, void *ptr)
 	}
 }
 
-void ProcessPacket(char *ptr)
-{
-	SC_Msg_Put_Character *my_packet = reinterpret_cast<SC_Msg_Put_Character *>(ptr);
-	printf("%d", my_packet->type);
-	switch (my_packet->type)
-	{
-	case CS_MOVE_DOWN:
-	{
-		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
-		g_clients[my_packet->Character_id].m_x = my_packet->x;
-		g_clients[my_packet->Character_id].m_y = my_packet->y - 1;
-		SC_Msg_Pos_Character p;
-		p.Character_id = my_packet->Character_id;
-		p.size = sizeof(p);
-		p.type = SC_POS_PLAYER;
-		p.x = g_clients[my_packet->Character_id].m_x;
-		p.y = g_clients[my_packet->Character_id].m_y;
-		SendPacket(p.Character_id, &p);
-		DisplayText("DOWN\n");
-		break;
-	}
-	case CS_MOVE_UP:
-	{
-		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
-		g_clients[my_packet->Character_id].m_x = my_packet->x;
-		g_clients[my_packet->Character_id].m_y = my_packet->y + 1;
-		SC_Msg_Pos_Character p;
-		p.Character_id = my_packet->Character_id;
-		p.size = sizeof(p);
-		p.type = SC_POS_PLAYER;
-		p.x = g_clients[my_packet->Character_id].m_x;
-		p.y = g_clients[my_packet->Character_id].m_y;
-		SendPacket(p.Character_id, &p);
-		DisplayText("UP\n");
-		break;
-	}case CS_MOVE_RIGHT:
-	{
-		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
-		g_clients[my_packet->Character_id].m_x = my_packet->x + 1;
-		g_clients[my_packet->Character_id].m_y = my_packet->y;
-		SC_Msg_Pos_Character p;
-		p.Character_id = my_packet->Character_id;
-		p.size = sizeof(p);
-		p.type = SC_POS_PLAYER;
-		p.x = g_clients[my_packet->Character_id].m_x;
-		p.y = g_clients[my_packet->Character_id].m_y;
-		SendPacket(p.Character_id, &p);
-		DisplayText("RIGHT\n");
-		break;
-	}case CS_MOVE_LEFT:
-	{
-		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
-		g_clients[my_packet->Character_id].m_x = my_packet->x - 1;
-		g_clients[my_packet->Character_id].m_y = my_packet->y;
-		SC_Msg_Pos_Character p;
-		p.Character_id = my_packet->Character_id;
-		p.size = sizeof(p);
-		p.type = SC_POS_PLAYER;
-		p.x = g_clients[my_packet->Character_id].m_x;
-		p.y = g_clients[my_packet->Character_id].m_y;
-		SendPacket(p.Character_id, &p);
-		DisplayText("LEFT\n");
-		break;
-	}
-	
-
-	default:
-		printf("Unknown PACKET type [%d]\n", ptr[1]);
-		break;
-	}
-
-
-}
+//void ProcessPacket(int PacketType)
+//{
+//	
+//	switch (PacketType)
+//	{
+//	case CS_MOVE_DOWN:
+//	{
+//		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
+//		g_clients[my_packet->Character_id].m_x = my_packet->x;
+//		g_clients[my_packet->Character_id].m_y = my_packet->y - 1;
+//		SC_Msg_Pos_Character p;
+//		p.Character_id = my_packet->Character_id;
+//		p.size = sizeof(p);
+//		p.type = SC_POS_PLAYER;
+//		p.dir = 2;
+//		p.x = g_clients[my_packet->Character_id].m_x;
+//		p.y = g_clients[my_packet->Character_id].m_y;
+//		SendPacket(p.Character_id, &p);
+//		DisplayText("DOWN\n");
+//		break;
+//	}
+//	case CS_MOVE_UP:
+//	{
+//		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
+//		g_clients[my_packet->Character_id].m_x = my_packet->x;
+//		g_clients[my_packet->Character_id].m_y = my_packet->y + 1;
+//		SC_Msg_Pos_Character p;
+//		p.Character_id = my_packet->Character_id;
+//		p.size = sizeof(p);
+//		p.type = SC_POS_PLAYER;
+//		p.dir = 8;
+//		p.x = g_clients[my_packet->Character_id].m_x;
+//		p.y = g_clients[my_packet->Character_id].m_y;
+//		SendPacket(p.Character_id, &p);
+//		DisplayText("UP\n");
+//		break;
+//	}
+//	case CS_MOVE_RIGHT:
+//	{
+//		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
+//		DisplayText("%d,\dn", my_packet->x, my_packet->y);
+//		g_clients[my_packet->Character_id].m_x = my_packet->x + 1;
+//		g_clients[my_packet->Character_id].m_y = my_packet->y;
+//		SC_Msg_Pos_Character p;
+//		p.Character_id = my_packet->Character_id;
+//		p.size = sizeof(p);
+//		p.type = SC_POS_PLAYER;
+//		p.dir = 6;
+//		p.x = g_clients[my_packet->Character_id].m_x;
+//		p.y = g_clients[my_packet->Character_id].m_y;
+//		SendPacket(p.Character_id, &p);
+//		DisplayText("RIGHT\n");
+//		break;
+//	}case CS_MOVE_LEFT:
+//	{
+//		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
+//		g_clients[my_packet->Character_id].m_x = my_packet->x - 1;
+//		g_clients[my_packet->Character_id].m_y = my_packet->y;
+//		SC_Msg_Pos_Character p;
+//		p.Character_id = my_packet->Character_id;
+//		p.size = sizeof(p);
+//		p.type = SC_POS_PLAYER;
+//		p.dir = 4;
+//		p.x = g_clients[my_packet->Character_id].m_x;
+//		p.y = g_clients[my_packet->Character_id].m_y;
+//		SendPacket(p.Character_id, &p);
+//		DisplayText("LEFT\n");
+//		break;
+//	}
+//	
+//
+//	default:
+//		printf("Unknown PACKET type [%d]\n", ptr[1]);
+//		break;
+//	}
+//
+//
+//}
 
 
 //
@@ -137,14 +142,23 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 	return (len - left);
 }
 
-void ReadPacket(SOCKET sock, char* packet)
+int ReadPacket(SOCKET sock, char* packet)
 {
+
 	int ret = recvn(sock, packet, sizeof(packet), 0);
-	if (ret > 0) {
-		ProcessPacket(packet);
-	}
+	return ret;
 
 }
+
+int ReturnTypeNumber(SOCKET& clientSock) {
+	int type, retVal;
+
+	retVal = recv(clientSock, (char*)&type, sizeof(type), 0);
+	
+	return type;
+}
+
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow)
@@ -360,23 +374,38 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	// 클라이언트 정보 얻기
 	addrlen = sizeof(clientaddr);
 	getpeername(client_sock, (SOCKADDR *)&clientaddr, &addrlen);
-
+	int recvType{ 0 };
 	while (true) {
-		sync++;
+		/*sync++;*/
 		//50ms마다 한번씩 위치 좌표 보내줌
-		if (sync > 50) {
-			SC_Msg_Pos_Character p;
-			//p.Character_id = 0;
-			p.size = sizeof(p);
-			p.type = SC_POS_PLAYER;
-			p.x = g_clients[0].m_x;
-			p.y = g_clients[0].m_y;
-			SendPacket(0, &p);
-			sync = 0;
+		//if (sync > 50) {
+		//	SC_Msg_Pos_Character p;
+		//	//p.Character_id = 0;
+		//	p.size = sizeof(p);
+		//	p.type = SC_POS_PLAYER;
+		//	p.x = g_clients[0].m_x;
+		//	p.y = g_clients[0].m_y;
+		//	SendPacket(0, &p);
+		//	sync = 0;
+		//}
+		recvType = ReturnTypeNumber(client_sock);
+		
+		//ProcessPacket(recvType);
+		int type, retVal{ 0 };
+		int size{ 0 };
+		if (recvType == CS_MOVE_RIGHT) {
+			CS_Msg_Pos_Character temp;
+			//std::cout << "   ToDebug : 데이터를 받으려고합니다." << std::endl;
+			retVal = recv(client_sock, (char*)&temp, sizeof(temp)+sizeof(int), 0);
+			//retval = ReadPacket(client_sock, &buf);
+			if (retVal > 0) {
+				//DisplayText("%d\n", sizeof(CS_Msg_Pos_Character));
+				//DisplayText("fuck");
+				DisplayText("%d, %d, %d, %d, %d", 
+					temp.size, temp.type, temp.Character_id, temp.x, temp.y);
+				//ProcessPacket(packet);,
+			}
 		}
-
-		// 데이터 받기
-		ReadPacket(client_sock, buf);
 		/*if (retval == SOCKET_ERROR) {
 			err_display("recv()");
 			DisplayText("recv에러입니다");

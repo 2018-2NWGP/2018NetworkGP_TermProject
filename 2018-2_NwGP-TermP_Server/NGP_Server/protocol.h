@@ -18,14 +18,16 @@ struct SC_Msg_Put_Character : public Packet
 struct SC_Msg_Pos_Character : public Packet
 {
 	BYTE Character_id;
+	int dir;
 	int x;
 	int y;
 };
 struct CS_Msg_Pos_Character : public Packet
 {
 	BYTE Character_id;
-	int x;
-	int y;
+	
+	short x;
+	short y;
 };
 
 #pragma pack(pop)

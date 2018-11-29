@@ -13,8 +13,6 @@ public:
 
 	bool ProcessInput(unsigned char* KeyBuffer) override;
 
-	void BuildPlayer() override;
-	void BuildPlayer(int id);
 private:
 	CBaseObject** m_ppObjects;
 	int m_nObjects;

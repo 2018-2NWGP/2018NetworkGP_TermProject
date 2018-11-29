@@ -13,6 +13,7 @@ PlayerObject::~PlayerObject()
 
 void PlayerObject::Update(float fTimeElapsed)
 {
+
 	window_left = clamp(0, int(GetPosition().x) - CLIENT_WIDTH / 2, int(GetBackgroundSize().width - CLIENT_WIDTH));
 	window_bottom = clamp(0, int(GetPosition().y) - CLIENT_HEIGHT / 2, int(GetBackgroundSize().height - CLIENT_HEIGHT));
 	if (m_State != melee_attack) {
@@ -59,8 +60,9 @@ void PlayerObject::Update(float fTimeElapsed)
 	case melee_attack:
 		attackAnimation_runtime += (AttackMotionSpeed * fTimeElapsed);
 		AttackFrame = static_cast<unsigned char>(attackAnimation_runtime) % 3;
-		if (AttackFrame > 1)
+		if (AttackFrame > 1) {
 			m_State = idle;
+		}
 		break;
 	default:
 		break;

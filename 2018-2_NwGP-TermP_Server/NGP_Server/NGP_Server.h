@@ -15,23 +15,32 @@
 //사용자 정의 헤더
 #include "protocol.h"
 using namespace std;
-
+struct EXOVER {
+	WSAOVERLAPPED m_over;
+	char m_iobuf[MAX_BUFF_SIZE];
+	WSABUF m_wsabuf;
+	bool is_recv;
+};
 class Client {
 public:
 	SOCKET m_s;
 	bool m_isconnected;
-	float m_x;
-	float m_y;
+	int m_x;
+	int m_y;
+	char* m_buffer;
+	EXOVER m_rxover;
 	Client()
 	{
 		m_isconnected = false;
 		m_x = 0;
 		m_y = 0;
+		ZeroMemory(&m_rxover.m_over, sizeof(WSAOVERLAPPED));
+		m_rxover.m_wsabuf.buf = m_rxover.m_iobuf;
+		m_rxover.m_wsabuf.len = sizeof(m_rxover.m_wsabuf.buf);
+		m_rxover.is_recv = true;
 	}
 };
 
-
-// 네크워크 함수
 
 //void NetworkInitialize();
 //
