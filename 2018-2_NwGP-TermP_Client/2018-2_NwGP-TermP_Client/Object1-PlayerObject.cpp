@@ -13,7 +13,6 @@ PlayerObject::~PlayerObject()
 
 void PlayerObject::Update(float fTimeElapsed)
 {
-
 	window_left = clamp(0, int(GetPosition().x) - CLIENT_WIDTH / 2, int(GetBackgroundSize().width - CLIENT_WIDTH));
 	window_bottom = clamp(0, int(GetPosition().y) - CLIENT_HEIGHT / 2, int(GetBackgroundSize().height - CLIENT_HEIGHT));
 	if (m_State != melee_attack) {
@@ -49,7 +48,7 @@ void PlayerObject::Update(float fTimeElapsed)
 		if ((directionBit & DIR_DOWN) && (directionBit & DIR_LEFT)) dirrection = 1;
 		if ((directionBit & DIR_DOWN) && (directionBit & DIR_RIGHT)) dirrection = 3;
 
-		walkAnimation_runtime += (WalkMotionSpeed * fTimeElapsed);
+		walkAnimation_runtime += (m_fWalkMotionSpeed * fTimeElapsed);
 		WalkMotion = static_cast<unsigned char>(walkAnimation_runtime) % 4;
 		WalkFrame = (WalkMotion < 3) ? WalkMotion : 1;
 
@@ -58,16 +57,14 @@ void PlayerObject::Update(float fTimeElapsed)
 	}
 		break;
 	case melee_attack:
-		attackAnimation_runtime += (AttackMotionSpeed * fTimeElapsed);
+		attackAnimation_runtime += (m_fAttackMotionSpeed * fTimeElapsed);
 		AttackFrame = static_cast<unsigned char>(attackAnimation_runtime) % 3;
-		if (AttackFrame > 1) {
-			m_State = idle;
-		}
+		if (AttackFrame > 1) 
+			m_State = idle;	
 		break;
 	default:
 		break;
 	}
-	
 }
 
 void PlayerObject::Render(HDC hdc)

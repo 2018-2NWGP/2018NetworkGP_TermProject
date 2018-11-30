@@ -401,7 +401,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			if (retVal > 0) {
 				//DisplayText("%d\n", sizeof(CS_Msg_Pos_Character));
 				//DisplayText("fuck");
-				DisplayText("%d, %d, %d, %d, %d", 
+				DisplayText("Size : %d, Type : %d, ID : %d, X : %d, Y : %d\n", 
 					temp.size, temp.type, temp.Character_id, temp.x, temp.y);
 				//ProcessPacket(packet);,
 			}

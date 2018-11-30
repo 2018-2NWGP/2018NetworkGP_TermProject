@@ -47,26 +47,33 @@ bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc, CNetw
 	// ...
 
 	// 캡션 변경
+#ifdef UNICODE
 	lstrcpy(m_CaptionTitle, TITLESTRING);
-
 #if defined(SHOW_CAPTIONFPS)
 	lstrcat(m_CaptionTitle, TEXT("("));
 #endif
 	m_TitleLength = lstrlen(m_CaptionTitle);
 	SetWindowText(m_hWnd, m_CaptionTitle);
-
+#else
+	strcpy(m_CaptionTitle, TITLESTRING);
+#if defined(SHOW_CAPTIONFPS)
+	strcat(m_CaptionTitle, TEXT("("));
+#endif
+	m_TitleLength = strlen(m_CaptionTitle);
+	SetWindowText(m_hWnd, m_CaptionTitle)
+#endif
 	// 타이머 초기화
 //	m_LastUpdate_time = chrono::system_clock::now(); // 선언하지 않았다.
 	m_current_time = std::chrono::system_clock::now();
 	m_fps = 0;
+
+	m_pNetwork->Initialize(m_hWnd);
 
 	BuildPlayer();
 	// 씬 생성
 	BuildScene();
 	// 최초의 씬은 무엇인가?
 	ChangeScene(CBaseScene::SceneTag::Main);
-	
-	m_pNetwork->Initialize(m_hWnd);
 	
 	return (m_hWnd != NULL);
 }
@@ -108,6 +115,11 @@ void CFramework::BuildScene()
 
 void CFramework::BuildPlayer()
 {
+	if (FAILED(PlayerImage.Load(TEXT("ResourceImage\\Player001_SwordMan.png"))))
+		assert(!"플레이어 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
+	if (PlayerImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Player Image Load Fail"), MB_OK);
+	// PlayerImage.Create(CLIENT_WIDTH, CLIENT_HEIGHT, 24);	// DC 만들어주는 버그 펑펑 터지는 함수
+
 	std::random_device rd;
 	std::default_random_engine dre(rd());
 	std::uniform_int_distribution<> randW(32, 4800);
@@ -115,11 +127,7 @@ void CFramework::BuildPlayer()
 
 	if (!m_pPlayer) {
 		m_pPlayer = new PlayerObject();
-		m_pPlayer->SetPosition(800, 600);
-		if (FAILED(PlayerImage.Load(TEXT("ResourceImage\\Player001_SwordMan.png"))))
-			assert(!"플레이어 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");		
-		if (PlayerImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Player Image Load Fail"), MB_OK);
-		// PlayerImage.Create(CLIENT_WIDTH, CLIENT_HEIGHT, 24);	// DC 만들어주는 버그 펑펑 터지는 함수
+		m_pPlayer->SetPosition(800, 600);	
 		m_pPlayer->SetImage(&PlayerImage);
 		m_pPlayer->SetSize(32, 64);
 		m_pPlayer->SetBackgroundSize(4800, 3200);
@@ -133,36 +141,9 @@ void CFramework::ReleaseScene()
 
 bool CFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
-	int x = 0, y = 0;
 	switch (nMessageID)
 	{
-	case WM_KEYDOWN:
-		
-		if (wParam == VK_RIGHT)	x += 1;
-		if (wParam == VK_LEFT)	x -= 1;
-		if (wParam == VK_UP)	y -= 1;
-		if (wParam == VK_DOWN)	y += 1;
-		int protocol;
-		CS_Msg_Pos_Character p;
-		p.size = sizeof(p);
-		p.Character_id = m_pNetwork->m_myid;
-		p.x = m_pPlayer->GetPosition().x;
-		p.y = m_pPlayer->GetPosition().y;
-		
-		protocol = CS_MOVE_RIGHT;
-		//p.type = CS_MOVE_RIGHT;
-		send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
-		if (0 != x) {
-			if (1 == x) p.type = CS_MOVE_RIGHT;
-			else p.type = CS_MOVE_LEFT;
-			m_pNetwork->SendPacket(&p);
-			printf("\n%d, %d, %d, %d,%d\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
-		}
-		if (0 != y) {
-			if (1 == y) p.type = CS_MOVE_DOWN;
-			else p.type = CS_MOVE_UP;
-			m_pNetwork->SendPacket(&p);
-		}
+	case WM_KEYDOWN:	
 		return true;
 	case WM_KEYUP:
 		switch (wParam)
@@ -211,20 +192,35 @@ void CFramework::Update(float fTimeElapsed)
 	bool bProcessedByScene = false;
 	// 플레이어를 조작하지 않는 화면에서는 해당 씬의 ProcessInput 함수를 실행
 	if (GetKeyboardState(pKeysBuffer) && m_pCurrScene) bProcessedByScene = m_pCurrScene->ProcessInput(pKeysBuffer);
-	// 플레이어를 조작하는 화면에서는 아래의 제어문 진입
+	// ProcessInput 함수의 결과값에 따라 들어오는 제어문
 	if (!bProcessedByScene)
 	{
 		DWORD dwDirection = 0;
-		/*
+
 		if (pKeysBuffer[VK_UP] & 0xF0) dwDirection |= DIR_UP;
 		if (pKeysBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_DOWN;
 		if (pKeysBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
 		if (pKeysBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
-		
+
 		if ((pKeysBuffer['a'] & 0xF0) || (pKeysBuffer['A'] & 0xF0)) m_pPlayer->SetState(melee_attack);
-		*/
-		if(dwDirection == 0)
-			m_pPlayer->SetDirection(dwDirection);
+
+		int protocol;
+		CS_Msg_Pos_Character p;
+		p.size = sizeof(p);
+		p.Character_id = m_pNetwork->m_myid;
+		p.x = m_pPlayer->GetPosition().x;
+		p.y = m_pPlayer->GetPosition().y;
+		protocol = CS_MOVE_RIGHT;
+		send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
+		if (dwDirection != 0) {
+			if (dwDirection & DIR_RIGHT) p.type = CS_MOVE_RIGHT;
+			else if (dwDirection & DIR_LEFT) p.type = CS_MOVE_LEFT;
+			else if (dwDirection != DIR_DOWN) p.type = CS_MOVE_DOWN;
+			else p.type = CS_MOVE_UP;
+			m_pNetwork->SendPacket(&p);
+			printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d\}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
+		}	
+		m_pPlayer->SetDirection(dwDirection);
 
 		//printf("x : %.2lf, y : %.2lf\n", m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y);
 	}
@@ -265,8 +261,6 @@ void CFramework::OnDraw(HDC hDC)
 
 void CFramework::FrameAdvance()
 {
-	
-	
 	// Get tick
 	m_timeElapsed = std::chrono::system_clock::now() - m_current_time;
 	if (m_timeElapsed.count() > MAX_FRAMETIME)
@@ -286,6 +280,7 @@ void CFramework::FrameAdvance()
 	}
 	InvalidateRect(m_hWnd, &m_rcClient, FALSE);	// False는 초기화를 하지 않는다는 뜻이다. 강제로 윈도우 메시지를 호출한다.
 	// 캡션에 글자를 뭘 넣을지 연산하는 캡션 스트링 연산
+#ifdef UNICODE
 	_itow_s(
 		m_fps + 0.1f
 		, m_CaptionTitle + m_TitleLength
@@ -295,8 +290,18 @@ void CFramework::FrameAdvance()
 		m_CaptionTitle + m_TitleLength
 		, TITLE_MX_LENGTH - m_TitleLength
 		, TEXT("FPS )"));
+#else
+	_itoa_s(
+		m_fps + 0.1f
+		, m_CaptionTitle + m_TitleLength
+		, TITLE_MX_LENGTH - m_TitleLength
+		, 10);
+	strcat_s(
+		m_CaptionTitle + m_TitleLength
+		, TITLE_MX_LENGTH - m_TitleLength
+		, TEXT("FPS )"));
+#endif
 	SetWindowText(m_hWnd, m_CaptionTitle);
-	
 }
 
 LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
