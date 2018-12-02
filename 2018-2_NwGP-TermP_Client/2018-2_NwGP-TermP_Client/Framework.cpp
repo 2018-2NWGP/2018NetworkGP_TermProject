@@ -269,7 +269,6 @@ void CFramework::Update(float fTimeElapsed)
 		
 		m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(dwDirection);
 
-		
 	}
 	for (int i = 0; i < MAX_USER; ++i) {
 		if (m_ppPlayer[i]) {
@@ -281,6 +280,7 @@ void CFramework::Update(float fTimeElapsed)
 				m_ppPlayer[i]->OtherScolling(m_ppPlayer[m_pNetwork->m_myid]);
 			}
 			m_ppPlayer[i]->Update(fTimeElapsed);
+
 		}
 	}
 

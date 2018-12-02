@@ -15,6 +15,8 @@ struct Packet {
 struct SC_Msg_Put_Character : public Packet
 {
 	BYTE Character_id;
+	int x;
+	int y;
 };
 
 struct SC_Msg_Pos_Character : public Packet
@@ -44,6 +46,12 @@ struct SC_Msg_Change_State : public Packet
 	BYTE Character_id;
 	BYTE State;
 };
+struct SC_Msg_Sync : public Packet
+{
+	BYTE Chracter_id;
+	BYTE State;
+
+};
 
 #pragma pack(pop)
 
@@ -68,6 +76,7 @@ struct SC_Msg_Change_State : public Packet
 #define SC_REMOVE_PLAYER			  103
 #define SC_POS_PLAYER				  104
 #define SC_CHANGE_STATE				  105
+#define SC_SYNC						  106
 //Client->Server
 #define CS_MOVE						  201
 #define CS_CHANGE_STATE				  202

@@ -27,6 +27,7 @@ public:
 	bool m_isconnected;
 	int m_x;
 	int m_y;
+	int m_state;
 	char* m_buffer;
 	EXOVER m_rxover;
 	Client()

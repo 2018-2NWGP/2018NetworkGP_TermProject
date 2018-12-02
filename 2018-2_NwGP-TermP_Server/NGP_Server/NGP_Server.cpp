@@ -275,6 +275,16 @@ DWORD WINAPI ServerMain(LPVOID arg)
 		SendPacket(id, &p);
 		//DisplayText("%d", p.type);
 
+		//for (int i = 0; i < MAX_USER; ++i)
+		//{
+		//	SC_Msg_Put_Character p;
+		//	p.Character_id = i;
+		//	p.x = g_clients[i].m_x;
+		//	p.y = g_clients[i].m_y;
+		//	if(id != i)
+		//		SendPacket(id, &p);
+		//}
+
 		// 스레드 생성
 		for (int i = 0; i < THREADCNT; ++i)
 		{
@@ -313,18 +323,21 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	getpeername(client_sock, (SOCKADDR *)&clientaddr, &addrlen);
 	int recvType{ 0 };
 	while (true) {
-		/*sync++;*/
+		sync++;
 		//50ms마다 한번씩 위치 좌표 보내줌
-		//if (sync > 50) {
-		//	SC_Msg_Pos_Character p;
-		//	//p.Character_id = 0;
-		//	p.size = sizeof(p);
-		//	p.type = SC_POS_PLAYER;
-		//	p.x = g_clients[0].m_x;
-		//	p.y = g_clients[0].m_y;
-		//	SendPacket(0, &p);
-		//	sync = 0;
-		//}
+		if (sync > 50) {
+			SC_Msg_Sync p;
+			//p.Character_id = 0;
+			p.size = sizeof(p);
+			p.type = SC_SYNC;
+			for (int i = 0; i < MAX_USER; ++i) {
+				if (g_clients[i].m_isconnected) {
+					p.State = g_ppPlayer[i]->GetState();
+					send(g_clients[i].m_s, (char*)&p, sizeof(p), 0);
+				}
+			}
+			sync = 0;
+		}
 		current_time = std::chrono::system_clock::now();
 		timeElapsed = std::chrono::system_clock::now() - current_time;
 		if (timeElapsed.count() > MAX_FRAMETIME)
@@ -366,7 +379,10 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			temp2.dwDirection = dwDirection;
 			temp2.size = sizeof(temp2);
 			temp2.type = SC_POS_PLAYER;
-			send(g_clients[temp2.Character_id].m_s, (char*)&temp2, sizeof(temp2), 0);
+			for (int i = 0; i < MAX_USER; ++i) {
+				if(g_clients[i].m_isconnected)
+					send(g_clients[i].m_s, (char*)&temp2, sizeof(temp2), 0);
+			}
 			recvType = -1;
 		}
 		if (recvType == CS_CHANGE_STATE)
@@ -375,7 +391,18 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			retVal = recv(client_sock, (char*)&temp, sizeof(temp) + sizeof(int), 0);
 			if (retVal == SOCKET_ERROR) printf("recv() Miss!\n");
 			g_ppPlayer[temp.Character_id]->SetState((ObjectState)temp.State);
+			g_clients[temp.Character_id].m_state = temp.State;
 
+			SC_Msg_Change_State temp2;
+			temp2.Character_id = temp.Character_id;
+			temp2.size = sizeof(temp2);
+			temp2.State = temp.State;
+			temp2.type = SC_CHANGE_STATE;
+			for (int i = 0; i < MAX_USER; ++i) {
+				if (g_clients[i].m_isconnected)
+					send(g_clients[i].m_s, (char*)&temp2, sizeof(temp2), 0);
+			}
+			recvType = -1;
 		}
 		
 	}

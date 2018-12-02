@@ -68,6 +68,9 @@ void CNetwork::ProcessPacket(char *ptr)
 			m_pFramework->ChangeScene(CBaseScene::SceneTag::Main);
 			//printf("id is set");
 		}
+		if (m_myid != id) {
+			m_ppPlayer[id]->SetPosition(my_packet->x, my_packet->y);
+		}
 		break;
 	}
 	case SC_POS_PLAYER:
@@ -77,10 +80,16 @@ void CNetwork::ProcessPacket(char *ptr)
 		m_ppPlayer[my_packet->Character_id]->SetDirectionBit(my_packet->dwDirection);
 		m_ppPlayer[my_packet->Character_id]->SetState(walking);
 		m_ppPlayer[my_packet->Character_id]->SetPosition(my_packet->x, my_packet->y);
-		//m_pPlayer->Update(my_packet->timeElapsed);
+		m_ppPlayer[my_packet->Character_id]->Update(my_packet->timeElapsed);
 		break;
 	}
-	
+	case SC_CHANGE_STATE:
+	{
+		SC_Msg_Change_State *my_packet = reinterpret_cast<SC_Msg_Change_State *>(ptr);
+
+		m_ppPlayer[my_packet->Character_id]->SetState((ObjectState)my_packet->State);
+		break;
+	}
 	
 	default:
 		printf("Unknown PACKET type [%d]\n", ptr[1]);
