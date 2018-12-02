@@ -197,7 +197,7 @@ DWORD WINAPI ServerMain(LPVOID arg)
 
 	g_Player->SetPosition(800, 600);
 	g_Player->SetSize(32, 64);
-	g_Player->SetBackgroundSize(4800, 3200);
+	g_Player->SetBackgroundSize(2400, 2400);
 	// 윈속 초기화
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)

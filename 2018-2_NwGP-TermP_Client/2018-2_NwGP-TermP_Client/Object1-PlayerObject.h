@@ -22,6 +22,8 @@ private:
 	float walkAnimation_runtime = 0.0f;		// 걷는 애니메이션 속도를 제어하기 위한 변수
 	float attackAnimation_runtime = 0.0f;	// 공격 애니메이션 속도를 제어하기 위한 변수
 	
+	int m_nMeleeAttackRange = 16;	// 공격 충돌박스가 발생할 중점 위치를 제어하기 위한 공격사거리 변수
+	Vec2i m_v2dMeleeAttachReach = { 32, 32 };	// 공격 충돌박스의 가로세로 크기를 제어해줄 변수
 
 	// 맵 스크롤링을 위하여 월드 좌표와 화면 좌표를 바꿔주기 위한 변수
 	int window_left = 0;
@@ -37,7 +39,9 @@ public:
 	virtual void Update(float fTimeElapsed = 1);
 	virtual void Render(HDC hdc);
 
-	void SetDirection(DWORD dwDir) { directionBit = dwDir; }
+	void SetDirectionBit(DWORD dwDir) { directionBit = dwDir; }
+	unsigned char GetDirection() const { return dirrection; }
+	
 	void SetMovingSpeed(double speed) { m_dMoveSpeed = speed; }
 	void SetAttackSpeed(float speed) { m_fAttackMotionSpeed = speed; }
 
@@ -47,12 +51,12 @@ public:
 	int GetAttack() const { return m_nAttack; }
 
 	void SetState(ObjectState state) { m_State = state; }
-	ObjectState GetState() { return m_State; }
+	ObjectState GetState() const { return m_State; }
 
 	void SetIdleState() { m_SetIdle = false; }
-	bool GetIdleState() { return m_SetIdle; }
-
+	bool GetIdleState() const { return m_SetIdle; }
 
 	Vec2i GetWindowLB() { return { (unsigned int)window_left, (unsigned int)window_bottom }; }
-};
 
+	bool RectAttackCollide(CBaseObject* Target);
+};

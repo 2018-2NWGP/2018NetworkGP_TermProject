@@ -69,8 +69,9 @@ bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc, CNetw
 
 	m_pNetwork->Initialize(m_hWnd);
 	m_pNetwork->SetFramework(this);
+
+
 	BuildPlayer();
-	
 	// 씬 생성
 	//BuildScene();
 	// 최초의 씬은 무엇인가?
@@ -106,12 +107,16 @@ void CFramework::BuildScene()
 	arrScene[CBaseScene::SceneTag::Main] = new CMainScene();
 	/*
 	if (FAILED(BGI.Load(TEXT("ResourceImage\\TestField_1024x768.png"))))
-		assert(!"테스트필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");*/
+	assert(!"테스트필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");*/
+	/*
 	if (FAILED(BGI.Load(TEXT("ResourceImage\\High_Field-GoldDragon.png"))))
+	assert(!"필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");*/
+	if (FAILED(BGI.Load(TEXT("ResourceImage\\BattleStage-Forest.png"))))
 		assert(!"필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
-	if (BGI.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Background Image Load Fail"), MB_OK);	
+	if (BGI.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Background Image Load Fail"), MB_OK);
 	arrScene[CBaseScene::SceneTag::Main]->SetBackgroundImage(&BGI);
 	arrScene[CBaseScene::SceneTag::Main]->SetPlayer(m_ppPlayer[m_pNetwork->m_myid]);
+	arrScene[CBaseScene::SceneTag::Main]->BuildObjects();
 	//m_ppPlayer[m_pNetwork->m_myid]->SetID(m_pNetwork->m_myid);
 }
 
@@ -143,7 +148,7 @@ void CFramework::BuildPlayer()
 		for (int i = 0; i < MAX_USER; ++i)
 		{
 			m_ppPlayer[i] = new PlayerObject();
-			m_ppPlayer[i]->SetPosition(800 + i * 100, 600);
+			m_ppPlayer[i]->SetPosition(800 + (i * 100), 600);
 			m_ppPlayer[i]->SetImage(&PlayerImage);
 			m_ppPlayer[i]->SetSize(32, 64);
 			m_ppPlayer[i]->SetBackgroundSize(4800, 3200);
@@ -207,7 +212,7 @@ void CFramework::Update(float fTimeElapsed)
 {
 	if (m_ppPlayer[m_pNetwork->m_myid]->GetIdleState())
 	{
-		m_ppPlayer[m_pNetwork->m_myid]->SetDirection(0);
+		m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(0);
 		int protocol;
 		CS_Msg_Change_State p;
 		p.size = sizeof(p);
@@ -229,11 +234,10 @@ void CFramework::Update(float fTimeElapsed)
 		DWORD dwDirection = 0;
 		//m_pPlayer->SetDirection(dwDirection);
 
-		int x{ 0 }, y{ 0 };
-		if (pKeysBuffer[VK_UP] & 0xF0) { dwDirection |= DIR_UP; y = 1; }
-		if (pKeysBuffer[VK_DOWN] & 0xF0) { dwDirection |= DIR_DOWN; y = -1; }
-		if (pKeysBuffer[VK_LEFT] & 0xF0) { dwDirection |= DIR_LEFT; x = -1; }
-		if (pKeysBuffer[VK_RIGHT] & 0xF0) { dwDirection |= DIR_RIGHT; x = 1; }
+		if (pKeysBuffer[VK_UP] & 0xF0) { dwDirection |= DIR_UP; }
+		if (pKeysBuffer[VK_DOWN] & 0xF0) { dwDirection |= DIR_DOWN; }
+		if (pKeysBuffer[VK_LEFT] & 0xF0) { dwDirection |= DIR_LEFT; }
+		if (pKeysBuffer[VK_RIGHT] & 0xF0) { dwDirection |= DIR_RIGHT; }
 
 		if ((pKeysBuffer['a'] & 0xF0) || (pKeysBuffer['A'] & 0xF0)) {
 			if (m_ppPlayer[m_pNetwork->m_myid]->GetState() != melee_attack) {
@@ -250,7 +254,7 @@ void CFramework::Update(float fTimeElapsed)
 				m_pNetwork->SendPacket(&p);
 			}
 		}
-		if (x != 0 || y != 0) {
+		if (dwDirection != 0 ) {
 			int protocol;
 			CS_Msg_Pos_Character p;
 			p.size = sizeof(p);
@@ -259,20 +263,18 @@ void CFramework::Update(float fTimeElapsed)
 			p.y = m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y;
 			p.dwDirection = dwDirection;
 			p.type = CS_MOVE;
-			if (dwDirection != 0) {
-		
-				protocol = p.type;
-				send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
-				m_pNetwork->SendPacket(&p);
-				//printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d\}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
-			}
+			protocol = p.type;
+			send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
+			m_pNetwork->SendPacket(&p);
+			//printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d\}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
 		}
 		
-		m_ppPlayer[m_pNetwork->m_myid]->SetDirection(dwDirection);
+		m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(dwDirection);
 
-		//printf("x : %.2lf, y : %.2lf\n", m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y);
+		
 	}
 	m_ppPlayer[m_pNetwork->m_myid]->Update(fTimeElapsed);
+	printf("Player[%d] : (x : %d, y : %d)\n", m_pNetwork->m_myid, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y);
 
 	m_pCurrScene->Update(fTimeElapsed);
 

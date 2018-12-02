@@ -74,7 +74,7 @@ void CNetwork::ProcessPacket(char *ptr)
 	{
 		SC_Msg_Pos_Character *my_packet = reinterpret_cast<SC_Msg_Pos_Character *>(ptr);
 
-		m_ppPlayer[my_packet->Character_id]->SetDirection(my_packet->dwDirection);
+		m_ppPlayer[my_packet->Character_id]->SetDirectionBit(my_packet->dwDirection);
 		m_ppPlayer[my_packet->Character_id]->SetState(walking);
 		m_ppPlayer[my_packet->Character_id]->SetPosition(my_packet->x, my_packet->y);
 		//m_pPlayer->Update(my_packet->timeElapsed);

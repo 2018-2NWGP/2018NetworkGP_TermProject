@@ -22,9 +22,11 @@ public:
 	virtual void Render(HDC hdc);
 
 	void SetPosition(unsigned int x = 0, unsigned int y = 0) { m_v2dPosition = { x, y }; }
+	void SetPosition(Vec2i position) { m_v2dPosition = position; }
 	void SetPosX(unsigned int x) { m_v2dPosition.x = x; }
 	void SetPosY(unsigned int y) { m_v2dPosition.y = y; }
 	void SetSize(unsigned int w = 0, unsigned int h = 0) { m_v2dSize = { w, h }; }
+	void SetSize(Vec2i size) { m_v2dSize = size; }
 	void SetBackgroundSize(unsigned int w = 0, unsigned int h = 0) {
 		if (!m_v2dBackgroundSize) { m_v2dBackgroundSize = new Vec2i{ w, h }; BGAllocated = true; }
 		else *m_v2dBackgroundSize = { w, h };
@@ -47,5 +49,8 @@ public:
 	Vec2i GetSize() const { return m_v2dSize; }
 	Vec2i GetBackgroundSize() const { return *m_v2dBackgroundSize; }
 	CImage* GetImage() const { return Obj_Image; }
+
+	bool RectCollide(Vec2i position, Vec2i size);
+	bool RectCollide(CBaseObject * other);
 };
 

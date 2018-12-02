@@ -36,14 +36,12 @@ private:
 	TCHAR m_CaptionTitle[TITLE_MX_LENGTH];	// SetWindow 함수에다가 이 타이틀을 집어넣는다.
 	int m_TitleLength;
 
-	PlayerObject * m_pPlayer = nullptr;
-	PlayerObject** m_ppPlayer{ NULL };
+	//PlayerObject * m_pPlayer = nullptr;
+	PlayerObject** m_ppPlayer = { nullptr };
 	int m_nPlayer = MAX_USER;
-
 
 	CImage PlayerImage;
 	CImage BGI;
-
 	
 	CNetwork* m_pNetwork;
 
@@ -88,8 +86,6 @@ public:
 	void ChangeScene(CBaseScene::SceneTag tag);
 
 	void RecvPacket();
-
-	void SetMyPlayer(int id) { m_ppPlayer[m_pNetwork->m_myid] = m_ppPlayer[id]; }
 private:
 	CBaseScene * arrScene[CBaseScene::SceneTag::Count];
 	CBaseScene * m_pCurrScene;
