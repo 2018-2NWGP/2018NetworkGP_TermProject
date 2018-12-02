@@ -194,11 +194,6 @@ DWORD WINAPI ServerMain(LPVOID arg)
 {
 	int retval;
 	g_current_time = std::chrono::system_clock::now();
-	g_Player = new PlayerObject;
-
-	g_Player->SetPosition(800, 600);
-	g_Player->SetSize(32, 64);
-	g_Player->SetBackgroundSize(2400, 2400);
 
 	if (!g_ppPlayer) {
 		g_ppPlayer = new PlayerObject*[MAX_USER];
@@ -210,7 +205,6 @@ DWORD WINAPI ServerMain(LPVOID arg)
 			g_ppPlayer[i]->SetBackgroundSize(4800, 3200);
 		}
 	}
-
 
 	// 윈속 초기화
 	WSADATA wsa;

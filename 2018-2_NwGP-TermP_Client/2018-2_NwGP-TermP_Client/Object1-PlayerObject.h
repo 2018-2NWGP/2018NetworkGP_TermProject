@@ -56,6 +56,14 @@ public:
 	void SetIdleState() { m_SetIdle = false; }
 	bool GetIdleState() const { return m_SetIdle; }
 
+	void CenterPlayerScrolling() {
+		window_left = clamp(0, int(GetPosition().x) - CLIENT_WIDTH / 2, int(GetBackgroundSize().width - CLIENT_WIDTH));
+		window_bottom = clamp(0, int(GetPosition().y) - CLIENT_HEIGHT / 2, int(GetBackgroundSize().height - CLIENT_HEIGHT));
+	}
+	void OtherScolling(CBaseObject * Center) {
+		window_left = clamp(0, int(Center->GetPosition().x) - CLIENT_WIDTH / 2, int(GetBackgroundSize().width - CLIENT_WIDTH));
+		window_bottom = clamp(0, int(Center->GetPosition().y) - CLIENT_HEIGHT / 2, int(GetBackgroundSize().height - CLIENT_HEIGHT));
+	}
 	Vec2i GetWindowLB() { return { (unsigned int)window_left, (unsigned int)window_bottom }; }
 
 	bool RectAttackCollide(CBaseObject* Target);

@@ -132,8 +132,6 @@ void CFramework::BuildPlayer()
 	std::uniform_int_distribution<> randW(32, 4800);
 	std::uniform_int_distribution<> randH(64, 3200);
 
-	
-
 	/*if (!m_pPlayer) {
 		m_pPlayer = new PlayerObject();
 		m_pPlayer->SetPosition(800, 600);	
@@ -148,11 +146,11 @@ void CFramework::BuildPlayer()
 		for (int i = 0; i < MAX_USER; ++i)
 		{
 			m_ppPlayer[i] = new PlayerObject();
-			m_ppPlayer[i]->SetPosition(800 + (i * 100), 600);
+			m_ppPlayer[i]->SetPosition(800+ (i * 100), 600);
 			m_ppPlayer[i]->SetImage(&PlayerImage);
 			m_ppPlayer[i]->SetSize(32, 64);
-			m_ppPlayer[i]->SetBackgroundSize(4800, 3200);
-		}
+			m_ppPlayer[i]->SetBackgroundSize(2400, 2400);		
+		}	
 		m_pNetwork->SetPlayers(m_ppPlayer);
 	}
 }
@@ -266,15 +264,28 @@ void CFramework::Update(float fTimeElapsed)
 			protocol = p.type;
 			send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
 			m_pNetwork->SendPacket(&p);
-			printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d\}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
+			printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
 		}
 		
 		m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(dwDirection);
 
 		
 	}
-	m_ppPlayer[m_pNetwork->m_myid]->Update(fTimeElapsed);
-	//printf("Player[%d] : (x : %d, y : %d)\n", m_pNetwork->m_myid, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y);
+	for (int i = 0; i < MAX_USER; ++i) {
+		if (m_ppPlayer[i]) {
+			if (m_pNetwork->m_myid == i) {
+				m_ppPlayer[i]->CenterPlayerScrolling();
+				printf("Player[%d] : (x : %d, y : %d)\n", m_pNetwork->m_myid, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y);
+			}
+			else {
+				m_ppPlayer[i]->OtherScolling(m_ppPlayer[m_pNetwork->m_myid]);
+			}
+			m_ppPlayer[i]->Update(fTimeElapsed);
+		}
+	}
+
+	
+	
 
 	m_pCurrScene->Update(fTimeElapsed);
 
