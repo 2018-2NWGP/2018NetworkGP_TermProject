@@ -266,7 +266,7 @@ void CFramework::Update(float fTimeElapsed)
 			protocol = p.type;
 			send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
 			m_pNetwork->SendPacket(&p);
-			//printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d\}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
+			printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d\}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
 		}
 		
 		m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(dwDirection);
@@ -274,7 +274,7 @@ void CFramework::Update(float fTimeElapsed)
 		
 	}
 	m_ppPlayer[m_pNetwork->m_myid]->Update(fTimeElapsed);
-	printf("Player[%d] : (x : %d, y : %d)\n", m_pNetwork->m_myid, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y);
+	//printf("Player[%d] : (x : %d, y : %d)\n", m_pNetwork->m_myid, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y);
 
 	m_pCurrScene->Update(fTimeElapsed);
 

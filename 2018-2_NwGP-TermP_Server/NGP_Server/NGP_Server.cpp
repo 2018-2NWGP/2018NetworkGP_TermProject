@@ -31,6 +31,7 @@ CRITICAL_SECTION cs; // 임계 영역
 array <Client, MAX_USER> g_clients;
 
 PlayerObject* g_Player;
+PlayerObject** g_ppPlayer;
 
 std::chrono::duration<double> g_timeElapsed;
 std::chrono::system_clock::time_point g_current_time;
@@ -198,6 +199,19 @@ DWORD WINAPI ServerMain(LPVOID arg)
 	g_Player->SetPosition(800, 600);
 	g_Player->SetSize(32, 64);
 	g_Player->SetBackgroundSize(2400, 2400);
+
+	if (!g_ppPlayer) {
+		g_ppPlayer = new PlayerObject*[MAX_USER];
+		for (int i = 0; i < MAX_USER; ++i)
+		{
+			g_ppPlayer[i] = new PlayerObject();
+			g_ppPlayer[i]->SetPosition(800 + (i * 100), 600);
+			g_ppPlayer[i]->SetSize(32, 64);
+			g_ppPlayer[i]->SetBackgroundSize(4800, 3200);
+		}
+	}
+
+
 	// 윈속 초기화
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -256,8 +270,8 @@ DWORD WINAPI ServerMain(LPVOID arg)
 		//clear for reuse
 
 		g_clients[id].m_isconnected = true;
-		g_clients[id].m_x = g_Player->GetPosition().x;
-		g_clients[id].m_y = g_Player->GetPosition().y;
+		g_clients[id].m_x = g_ppPlayer[id]->GetPosition().x;
+		g_clients[id].m_y = g_ppPlayer[id]->GetPosition().y;
 		//StartRecv(id);
 
 		SC_Msg_Put_Character p;
@@ -270,10 +284,11 @@ DWORD WINAPI ServerMain(LPVOID arg)
 		// 스레드 생성
 		for (int i = 0; i < THREADCNT; ++i)
 		{
-			if(!hThread[i])
+			if (!hThread[i]) {
 				hThread[i] = CreateThread(NULL, 0, ProcessClient,
-					(LPVOID)client_sock, 0, NULL);
-			break;
+					(LPVOID)g_clients[id].m_s, 0, NULL);
+				break;
+			}
 			//if (hThread == NULL) { closesocket(client_sock); }
 			//else { CloseHandle(hThread); }
 		}
@@ -290,8 +305,9 @@ DWORD WINAPI ServerMain(LPVOID arg)
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
-	
+	DisplayText("스레드 등록\n");
 	std::chrono::system_clock::time_point current_time;
+	std::chrono::duration<double> timeElapsed;
 	SOCKET client_sock = (SOCKET)arg;
 	int retval;
 	SOCKADDR_IN clientaddr;
@@ -316,10 +332,11 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		//	sync = 0;
 		//}
 		current_time = std::chrono::system_clock::now();
-		g_timeElapsed = std::chrono::system_clock::now() - current_time;
-		if (g_timeElapsed.count() > MAX_FRAMETIME)
+		timeElapsed = std::chrono::system_clock::now() - current_time;
+		if (timeElapsed.count() > MAX_FRAMETIME)
 		{
-			g_Player->Update(g_timeElapsed.count());
+			for(int i = 0; i<MAX_USER; ++i)
+				g_ppPlayer[i]->Update(timeElapsed.count());
 		}
 
 		recvType = ReturnTypeNumber(client_sock);
@@ -333,25 +350,25 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			if (retVal == SOCKET_ERROR) printf("recv() Miss!\n");
 			
 			DWORD dwDirection = temp.dwDirection;
-
-			g_timeElapsed = std::chrono::system_clock::now() - current_time;
-			if (g_timeElapsed.count() > MAX_FRAMETIME)
+			DisplayText("%d,%d,%d,%d\n", temp.Character_id, temp.type, temp.x, temp.y);
+			timeElapsed = std::chrono::system_clock::now() - current_time;
+			if (timeElapsed.count() > MAX_FRAMETIME)
 			{
 				//dwDirection |= DIR_RIGHT;
-				g_Player->SetDirection(dwDirection);
+				g_ppPlayer[temp.Character_id]->SetDirection(dwDirection);
 				//g_Player->Update(g_timeElapsed.count());
 
 			}
 			
-			g_clients[temp.Character_id].m_x = g_Player->GetPosition().x;
-			g_clients[temp.Character_id].m_y = g_Player->GetPosition().y;
+			g_clients[temp.Character_id].m_x = g_ppPlayer[temp.Character_id]->GetPosition().x;
+			g_clients[temp.Character_id].m_y = g_ppPlayer[temp.Character_id]->GetPosition().y;
 			
 			SC_Msg_Pos_Character temp2;
 			temp2.Character_id = temp.Character_id;
 			//temp2.dir = 6;
-			temp2.x = g_Player->GetPosition().x;
-			temp2.y = g_Player->GetPosition().y;
-			temp2.timeElapsed = g_timeElapsed.count();
+			temp2.x = g_ppPlayer[temp.Character_id]->GetPosition().x;
+			temp2.y = g_ppPlayer[temp.Character_id]->GetPosition().y;
+			temp2.timeElapsed = timeElapsed.count();
 			temp2.dwDirection = dwDirection;
 			temp2.size = sizeof(temp2);
 			temp2.type = SC_POS_PLAYER;
@@ -363,7 +380,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			CS_Msg_Change_State temp;
 			retVal = recv(client_sock, (char*)&temp, sizeof(temp) + sizeof(int), 0);
 			if (retVal == SOCKET_ERROR) printf("recv() Miss!\n");
-			g_Player->SetState((ObjectState)temp.State);
+			g_ppPlayer[temp.Character_id]->SetState((ObjectState)temp.State);
 
 		}
 		

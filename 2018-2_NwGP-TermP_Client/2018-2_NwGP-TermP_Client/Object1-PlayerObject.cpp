@@ -15,7 +15,7 @@ void PlayerObject::Update(float fTimeElapsed)
 {
 	window_left = clamp(0, int(GetPosition().x) - CLIENT_WIDTH / 2, int(GetBackgroundSize().width - CLIENT_WIDTH));
 	window_bottom = clamp(0, int(GetPosition().y) - CLIENT_HEIGHT / 2, int(GetBackgroundSize().height - CLIENT_HEIGHT));
-	printf("%d, %d\n", m_State, directionBit);
+	//printf("%d, %d\n", m_State, directionBit);
 	if (m_State != melee_attack) {
 		AttackFrame = 0;
 		attackAnimation_runtime = 0.0f;
