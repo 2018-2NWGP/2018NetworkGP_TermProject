@@ -2,7 +2,10 @@
 #include <winsock2.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <chrono>
+#include "stdafx.h"
 #include "NGP_Server.h"
+#include "Object1-PlayerObject.h"
 
 #define SERVERPORT 9000
 #define BUFSIZE    512
@@ -27,8 +30,10 @@ CRITICAL_SECTION cs; // 임계 영역
 // 전역 변수
 array <Client, MAX_USER> g_clients;
 
-float g_GameTime;
+PlayerObject* g_Player;
 
+std::chrono::duration<double> g_timeElapsed;
+std::chrono::system_clock::time_point g_current_time;
 //////////////////////////////////////////////////////////////
 
 void SendPacket(int id, void *ptr)
@@ -39,89 +44,6 @@ void SendPacket(int id, void *ptr)
 		int err_no = WSAGetLastError();
 	}
 }
-
-//void ProcessPacket(int PacketType)
-//{
-//	
-//	switch (PacketType)
-//	{
-//	case CS_MOVE_DOWN:
-//	{
-//		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
-//		g_clients[my_packet->Character_id].m_x = my_packet->x;
-//		g_clients[my_packet->Character_id].m_y = my_packet->y - 1;
-//		SC_Msg_Pos_Character p;
-//		p.Character_id = my_packet->Character_id;
-//		p.size = sizeof(p);
-//		p.type = SC_POS_PLAYER;
-//		p.dir = 2;
-//		p.x = g_clients[my_packet->Character_id].m_x;
-//		p.y = g_clients[my_packet->Character_id].m_y;
-//		SendPacket(p.Character_id, &p);
-//		DisplayText("DOWN\n");
-//		break;
-//	}
-//	case CS_MOVE_UP:
-//	{
-//		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
-//		g_clients[my_packet->Character_id].m_x = my_packet->x;
-//		g_clients[my_packet->Character_id].m_y = my_packet->y + 1;
-//		SC_Msg_Pos_Character p;
-//		p.Character_id = my_packet->Character_id;
-//		p.size = sizeof(p);
-//		p.type = SC_POS_PLAYER;
-//		p.dir = 8;
-//		p.x = g_clients[my_packet->Character_id].m_x;
-//		p.y = g_clients[my_packet->Character_id].m_y;
-//		SendPacket(p.Character_id, &p);
-//		DisplayText("UP\n");
-//		break;
-//	}
-//	case CS_MOVE_RIGHT:
-//	{
-//		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
-//		DisplayText("%d,\dn", my_packet->x, my_packet->y);
-//		g_clients[my_packet->Character_id].m_x = my_packet->x + 1;
-//		g_clients[my_packet->Character_id].m_y = my_packet->y;
-//		SC_Msg_Pos_Character p;
-//		p.Character_id = my_packet->Character_id;
-//		p.size = sizeof(p);
-//		p.type = SC_POS_PLAYER;
-//		p.dir = 6;
-//		p.x = g_clients[my_packet->Character_id].m_x;
-//		p.y = g_clients[my_packet->Character_id].m_y;
-//		SendPacket(p.Character_id, &p);
-//		DisplayText("RIGHT\n");
-//		break;
-//	}case CS_MOVE_LEFT:
-//	{
-//		CS_Msg_Pos_Character *my_packet = reinterpret_cast<CS_Msg_Pos_Character *>(ptr);
-//		g_clients[my_packet->Character_id].m_x = my_packet->x - 1;
-//		g_clients[my_packet->Character_id].m_y = my_packet->y;
-//		SC_Msg_Pos_Character p;
-//		p.Character_id = my_packet->Character_id;
-//		p.size = sizeof(p);
-//		p.type = SC_POS_PLAYER;
-//		p.dir = 4;
-//		p.x = g_clients[my_packet->Character_id].m_x;
-//		p.y = g_clients[my_packet->Character_id].m_y;
-//		SendPacket(p.Character_id, &p);
-//		DisplayText("LEFT\n");
-//		break;
-//	}
-//	
-//
-//	default:
-//		printf("Unknown PACKET type [%d]\n", ptr[1]);
-//		break;
-//	}
-//
-//
-//}
-
-
-//
-
 
 int recvn(SOCKET s, char *buf, int len, int flags)
 {
@@ -157,8 +79,6 @@ int ReturnTypeNumber(SOCKET& clientSock) {
 	
 	return type;
 }
-
-
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow)
@@ -272,7 +192,12 @@ void err_display(char *msg)
 DWORD WINAPI ServerMain(LPVOID arg)
 {
 	int retval;
+	g_current_time = std::chrono::system_clock::now();
+	g_Player = new PlayerObject;
 
+	g_Player->SetPosition(800, 600);
+	g_Player->SetSize(32, 64);
+	g_Player->SetBackgroundSize(4800, 3200);
 	// 윈속 초기화
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -331,8 +256,8 @@ DWORD WINAPI ServerMain(LPVOID arg)
 		//clear for reuse
 
 		g_clients[id].m_isconnected = true;
-		g_clients[id].m_x = 800;
-		g_clients[id].m_y = 600;
+		g_clients[id].m_x = g_Player->GetPosition().x;
+		g_clients[id].m_y = g_Player->GetPosition().y;
 		//StartRecv(id);
 
 		SC_Msg_Put_Character p;
@@ -356,7 +281,7 @@ DWORD WINAPI ServerMain(LPVOID arg)
 
 	// closesocket()
 	closesocket(listen_sock);
-
+	delete g_Player;
 	// 윈속 종료
 	WSACleanup();
 	return 0;
@@ -365,6 +290,8 @@ DWORD WINAPI ServerMain(LPVOID arg)
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
+	
+	std::chrono::system_clock::time_point current_time;
 	SOCKET client_sock = (SOCKET)arg;
 	int retval;
 	SOCKADDR_IN clientaddr;
@@ -388,31 +315,58 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		//	SendPacket(0, &p);
 		//	sync = 0;
 		//}
+		current_time = std::chrono::system_clock::now();
+		g_timeElapsed = std::chrono::system_clock::now() - current_time;
+		if (g_timeElapsed.count() > MAX_FRAMETIME)
+		{
+			g_Player->Update(g_timeElapsed.count());
+		}
+
 		recvType = ReturnTypeNumber(client_sock);
 		
 		//ProcessPacket(recvType);
 		int type, retVal{ 0 };
 		int size{ 0 };
-		if (recvType == CS_MOVE_RIGHT) {
+		if (recvType == CS_MOVE) {
 			CS_Msg_Pos_Character temp;
-			//std::cout << "   ToDebug : 데이터를 받으려고합니다." << std::endl;
 			retVal = recv(client_sock, (char*)&temp, sizeof(temp)+sizeof(int), 0);
-			//retval = ReadPacket(client_sock, &buf);
-			if (retVal > 0) {
-				//DisplayText("%d\n", sizeof(CS_Msg_Pos_Character));
-				//DisplayText("fuck");
-				DisplayText("Size : %d, Type : %d, ID : %d, X : %d, Y : %d\n", 
-					temp.size, temp.type, temp.Character_id, temp.x, temp.y);
-				//ProcessPacket(packet);,
+			if (retVal == SOCKET_ERROR) printf("recv() Miss!\n");
+			
+			DWORD dwDirection = temp.dwDirection;
+
+			g_timeElapsed = std::chrono::system_clock::now() - current_time;
+			if (g_timeElapsed.count() > MAX_FRAMETIME)
+			{
+				//dwDirection |= DIR_RIGHT;
+				g_Player->SetDirection(dwDirection);
+				//g_Player->Update(g_timeElapsed.count());
+
 			}
+			
+			g_clients[temp.Character_id].m_x = g_Player->GetPosition().x;
+			g_clients[temp.Character_id].m_y = g_Player->GetPosition().y;
+			
+			SC_Msg_Pos_Character temp2;
+			temp2.Character_id = temp.Character_id;
+			//temp2.dir = 6;
+			temp2.x = g_Player->GetPosition().x;
+			temp2.y = g_Player->GetPosition().y;
+			temp2.timeElapsed = g_timeElapsed.count();
+			temp2.dwDirection = dwDirection;
+			temp2.size = sizeof(temp2);
+			temp2.type = SC_POS_PLAYER;
+			send(g_clients[temp2.Character_id].m_s, (char*)&temp2, sizeof(temp2), 0);
+			recvType = -1;
 		}
-		/*if (retval == SOCKET_ERROR) {
-			err_display("recv()");
-			DisplayText("recv에러입니다");
-			break;
+		if (recvType == CS_CHANGE_STATE)
+		{
+			CS_Msg_Change_State temp;
+			retVal = recv(client_sock, (char*)&temp, sizeof(temp) + sizeof(int), 0);
+			if (retVal == SOCKET_ERROR) printf("recv() Miss!\n");
+			g_Player->SetState((ObjectState)temp.State);
+
 		}
-		else
-			DisplayText("잘 받았습니다");*/
+		
 	}
 
 	// closesocket()

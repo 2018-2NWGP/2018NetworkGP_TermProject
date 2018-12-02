@@ -28,14 +28,12 @@ private:
 	int window_bottom = 0;
 
 	ObjectState m_State = idle;
-	bool m_SetIdle = false;
 
 public:
 	PlayerObject();
 	virtual ~PlayerObject();
 
 	virtual void Update(float fTimeElapsed = 1);
-	virtual void Render(HDC hdc);
 
 	void SetDirection(DWORD dwDir) { directionBit = dwDir; }
 	void SetMovingSpeed(double speed) { m_dMoveSpeed = speed; }
@@ -48,10 +46,6 @@ public:
 
 	void SetState(ObjectState state) { m_State = state; }
 	ObjectState GetState() { return m_State; }
-
-	void SetIdleState() { m_SetIdle = false; }
-	bool GetIdleState() { return m_SetIdle; }
-
 
 	Vec2i GetWindowLB() { return { (unsigned int)window_left, (unsigned int)window_bottom }; }
 };

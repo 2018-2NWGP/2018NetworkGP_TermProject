@@ -13,8 +13,7 @@ PlayerObject::~PlayerObject()
 
 void PlayerObject::Update(float fTimeElapsed)
 {
-	window_left = clamp(0, int(GetPosition().x) - CLIENT_WIDTH / 2, int(GetBackgroundSize().width - CLIENT_WIDTH));
-	window_bottom = clamp(0, int(GetPosition().y) - CLIENT_HEIGHT / 2, int(GetBackgroundSize().height - CLIENT_HEIGHT));
+	printf("%d, %d\n", m_State, directionBit);
 	if (m_State != melee_attack) {
 		AttackFrame = 0;
 		attackAnimation_runtime = 0.0f;
@@ -28,19 +27,15 @@ void PlayerObject::Update(float fTimeElapsed)
 		double distance = m_dMoveSpeed * fTimeElapsed;
 		if (distance < 1.0) distance = 1.0;	// 최소보정, 1 미만의 값인 경우 픽셀 좌표가 바뀌지 않기 때문
 		if (directionBit & DIR_UP) {
-			SetPosY(max(static_cast<int>(GetPosition().y - distance), 0));
 			dirrection = 8;
 		}
 		if (directionBit & DIR_DOWN) {
-			SetPosY(min(static_cast<int>(GetPosition().y + distance), GetBackgroundSize().height - GetSize().height));
 			dirrection = 2;
 		}
 		if (directionBit & DIR_LEFT) {
-			SetPosX(max(static_cast<int>(GetPosition().x - distance), 0));
 			dirrection = 4;
 		}
 		if (directionBit & DIR_RIGHT) {
-			SetPosX(min(static_cast<int>(GetPosition().x + distance), GetBackgroundSize().width - GetSize().width));
 			dirrection = 6;
 		}
 		if ((directionBit & DIR_UP) && (directionBit & DIR_LEFT)) dirrection = 7;
@@ -52,15 +47,21 @@ void PlayerObject::Update(float fTimeElapsed)
 		WalkMotion = static_cast<unsigned char>(walkAnimation_runtime) % 4;
 		WalkFrame = (WalkMotion < 3) ? WalkMotion : 1;
 
-		if (directionBit == 0)
+		if (directionBit == 0) {
+			m_SetIdle = true;
 			m_State = idle;
+		}
 	}
 		break;
 	case melee_attack:
 		attackAnimation_runtime += (m_fAttackMotionSpeed * fTimeElapsed);
 		AttackFrame = static_cast<unsigned char>(attackAnimation_runtime) % 3;
-		if (AttackFrame > 1) 
-			m_State = idle;	
+		if (AttackFrame > 1)
+		{
+			m_SetIdle = true;
+			m_State = idle;
+		}
+			
 		break;
 	default:
 		break;
@@ -70,7 +71,8 @@ void PlayerObject::Update(float fTimeElapsed)
 void PlayerObject::Render(HDC hdc)
 {
 	// GetImage()->TransparentBlt(hdc, 50, 50, 256, 128, 0, 0, 1024, 768);	// 특정 영역을 특정 옵션을 통해 투명화처리하는 함수
-
+	window_left = clamp(0, int(GetPosition().x) - CLIENT_WIDTH / 2, int(GetBackgroundSize().width - CLIENT_WIDTH));
+	window_bottom = clamp(0, int(GetPosition().y) - CLIENT_HEIGHT / 2, int(GetBackgroundSize().height - CLIENT_HEIGHT));
 	switch (m_State) {
 	case idle:
 	{	

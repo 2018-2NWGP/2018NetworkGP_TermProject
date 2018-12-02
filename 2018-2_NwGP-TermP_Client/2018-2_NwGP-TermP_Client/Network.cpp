@@ -52,6 +52,7 @@ void CNetwork::Finalize()
 void CNetwork::ProcessPacket(char *ptr)
 {
 	SC_Msg_Put_Character *my_packet = reinterpret_cast<SC_Msg_Put_Character *>(ptr);
+	SC_Msg_Pos_Character *my_Movepacket = reinterpret_cast<SC_Msg_Pos_Character *>(ptr);
 	switch (my_packet->type)
 	{
 	case SC_PUT_PLAYER:
@@ -68,20 +69,13 @@ void CNetwork::ProcessPacket(char *ptr)
 	case SC_POS_PLAYER:
 	{
 		SC_Msg_Pos_Character *my_packet = reinterpret_cast<SC_Msg_Pos_Character *>(ptr);
-		printf("%d, %d, %d\n", my_packet->Character_id, my_packet->x, my_packet->y);
-		//m_pPlayer->SetPosition(my_packet->x, my_packet->y);
-		DWORD dwDirection = 0;
-		if (my_packet->dir == 8) dwDirection = DIR_UP;
-		if (my_packet->dir == 2) dwDirection = DIR_DOWN;
-		if (my_packet->dir == 4) dwDirection = DIR_LEFT;
-		if (my_packet->dir == 6) dwDirection = DIR_RIGHT;
-		printf("%d\n", my_packet->dir);
-		m_pPlayer->SetDirection(dwDirection);
+
+		m_pPlayer->SetDirection(my_packet->dwDirection);
 		m_pPlayer->SetState(walking);
-		m_pPlayer->Update();
+		m_pPlayer->SetPosition(my_packet->x, my_packet->y);
+		//m_pPlayer->Update(my_packet->timeElapsed);
 		break;
 	}
-	
 	
 	
 	default:
@@ -129,6 +123,5 @@ void CNetwork::SendPacket(void* ptr)
 	char *packet = reinterpret_cast<char *>(ptr);
 	
 	int res = send(m_mysocket, packet, sizeof(packet) + sizeof(int), 0);
-	printf("SenT!\n");
 }
 

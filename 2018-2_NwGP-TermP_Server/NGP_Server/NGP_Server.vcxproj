@@ -23,7 +23,7 @@
     <ProjectGuid>{8FC7C66D-0BB0-4CBB-A472-73C612FB58FF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>NGP_Server</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -140,10 +140,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="NGP_Server.cpp" />
+    <ClCompile Include="Object0-BaseObject.cpp" />
+    <ClCompile Include="Object1-PlayerObject.cpp" />
+    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NGP_Server.h" />
+    <ClInclude Include="Object0-BaseObject.h" />
+    <ClInclude Include="Object1-PlayerObject.h" />
     <ClInclude Include="protocol.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

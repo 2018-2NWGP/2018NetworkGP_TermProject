@@ -1,6 +1,8 @@
-#include <windows.h>
-
 #pragma once
+
+#include <windows.h>
+#include <chrono>
+
 #pragma pack(push,1)
 struct Packet {
 
@@ -18,6 +20,8 @@ struct SC_Msg_Put_Character : public Packet
 struct SC_Msg_Pos_Character : public Packet
 {
 	BYTE Character_id;
+	DWORD dwDirection;
+	float timeElapsed;
 	int dir;
 	int x;
 	int y;
@@ -25,9 +29,20 @@ struct SC_Msg_Pos_Character : public Packet
 struct CS_Msg_Pos_Character : public Packet
 {
 	BYTE Character_id;
-	
+	DWORD dwDirection;
 	short x;
 	short y;
+};
+
+struct CS_Msg_Change_State : public Packet
+{
+	BYTE Character_id;
+	BYTE State;
+};
+struct SC_Msg_Change_State : public Packet
+{
+	BYTE Character_id;
+	BYTE State;
 };
 
 #pragma pack(pop)
@@ -52,12 +67,10 @@ struct CS_Msg_Pos_Character : public Packet
 #define SC_PUT_PLAYER				  102
 #define SC_REMOVE_PLAYER			  103
 #define SC_POS_PLAYER				  104
-
+#define SC_CHANGE_STATE				  105
 //Client->Server
-#define CS_MOVE_RIGHT				  201
-#define CS_MOVE_UP					  202
-#define CS_MOVE_DOWN				  203
-#define CS_MOVE_LEFT				  204
+#define CS_MOVE						  201
+#define CS_CHANGE_STATE				  202
 
 
 

@@ -188,6 +188,20 @@ HRESULT CFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM
 
 void CFramework::Update(float fTimeElapsed)
 {
+	if (m_pPlayer->GetIdleState())
+	{
+		m_pPlayer->SetDirection(0);
+		int protocol;
+		CS_Msg_Change_State p;
+		p.size = sizeof(p);
+		p.Character_id = m_pNetwork->m_myid;
+		p.State = (BYTE)idle;
+		p.type = CS_CHANGE_STATE;
+		protocol = p.type;
+		send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
+		m_pNetwork->SendPacket(&p);
+		m_pPlayer->SetIdleState();
+	}
 	static UCHAR pKeysBuffer[256];
 	bool bProcessedByScene = false;
 	// 플레이어를 조작하지 않는 화면에서는 해당 씬의 ProcessInput 함수를 실행
@@ -196,30 +210,47 @@ void CFramework::Update(float fTimeElapsed)
 	if (!bProcessedByScene)
 	{
 		DWORD dwDirection = 0;
+		//m_pPlayer->SetDirection(dwDirection);
 
-		if (pKeysBuffer[VK_UP] & 0xF0) dwDirection |= DIR_UP;
-		if (pKeysBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_DOWN;
-		if (pKeysBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
-		if (pKeysBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
+		int x{ 0 }, y{ 0 };
+		if (pKeysBuffer[VK_UP] & 0xF0) { dwDirection |= DIR_UP; y = 1; }
+		if (pKeysBuffer[VK_DOWN] & 0xF0) { dwDirection |= DIR_DOWN; y = -1; }
+		if (pKeysBuffer[VK_LEFT] & 0xF0) { dwDirection |= DIR_LEFT; x = -1; }
+		if (pKeysBuffer[VK_RIGHT] & 0xF0) { dwDirection |= DIR_RIGHT; x = 1; }
 
-		if ((pKeysBuffer['a'] & 0xF0) || (pKeysBuffer['A'] & 0xF0)) m_pPlayer->SetState(melee_attack);
-
-		int protocol;
-		CS_Msg_Pos_Character p;
-		p.size = sizeof(p);
-		p.Character_id = m_pNetwork->m_myid;
-		p.x = m_pPlayer->GetPosition().x;
-		p.y = m_pPlayer->GetPosition().y;
-		protocol = CS_MOVE_RIGHT;
-		send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
-		if (dwDirection != 0) {
-			if (dwDirection & DIR_RIGHT) p.type = CS_MOVE_RIGHT;
-			else if (dwDirection & DIR_LEFT) p.type = CS_MOVE_LEFT;
-			else if (dwDirection != DIR_DOWN) p.type = CS_MOVE_DOWN;
-			else p.type = CS_MOVE_UP;
-			m_pNetwork->SendPacket(&p);
-			printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d\}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
-		}	
+		if ((pKeysBuffer['a'] & 0xF0) || (pKeysBuffer['A'] & 0xF0)) {
+			if (m_pPlayer->GetState() != melee_attack) {
+				m_pPlayer->SetState(melee_attack);
+				
+				int protocol;
+				CS_Msg_Change_State p;
+				p.size = sizeof(p);
+				p.Character_id = m_pNetwork->m_myid;
+				p.State = (BYTE)melee_attack;
+				p.type = CS_CHANGE_STATE;
+				protocol = p.type;
+				send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
+				m_pNetwork->SendPacket(&p);
+			}
+		}
+		if (x != 0 || y != 0) {
+			int protocol;
+			CS_Msg_Pos_Character p;
+			p.size = sizeof(p);
+			p.Character_id = m_pNetwork->m_myid;
+			p.x = m_pPlayer->GetPosition().x;
+			p.y = m_pPlayer->GetPosition().y;
+			p.dwDirection = dwDirection;
+			p.type = CS_MOVE;
+			if (dwDirection != 0) {
+		
+				protocol = p.type;
+				send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
+				m_pNetwork->SendPacket(&p);
+				//printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d\}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
+			}
+		}
+		
 		m_pPlayer->SetDirection(dwDirection);
 
 		//printf("x : %.2lf, y : %.2lf\n", m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y);
