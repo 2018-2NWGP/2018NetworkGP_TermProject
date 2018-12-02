@@ -50,7 +50,8 @@ struct SC_Msg_Sync : public Packet
 {
 	BYTE Chracter_id;
 	BYTE State;
-
+	int x;
+	int y;
 };
 
 #pragma pack(pop)

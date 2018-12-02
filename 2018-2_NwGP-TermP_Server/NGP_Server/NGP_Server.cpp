@@ -6,6 +6,7 @@
 #include "stdafx.h"
 #include "NGP_Server.h"
 #include "Object1-PlayerObject.h"
+#include "Scene1-MainGameScene.h"
 
 #define SERVERPORT 9000
 #define BUFSIZE    512
@@ -32,6 +33,7 @@ array <Client, MAX_USER> g_clients;
 
 PlayerObject* g_Player;
 PlayerObject** g_ppPlayer;
+CMainScene* g_pScene;
 
 std::chrono::duration<double> g_timeElapsed;
 std::chrono::system_clock::time_point g_current_time;
@@ -206,6 +208,10 @@ DWORD WINAPI ServerMain(LPVOID arg)
 		}
 	}
 
+	g_pScene = new CMainScene();
+	
+	g_pScene->BuildObjects();
+	g_pScene->SetPlayer(g_ppPlayer);
 	// 윈속 초기화
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -333,6 +339,8 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			for (int i = 0; i < MAX_USER; ++i) {
 				if (g_clients[i].m_isconnected) {
 					p.State = g_ppPlayer[i]->GetState();
+					p.x = g_ppPlayer[i]->GetPosition().x;
+					p.y = g_ppPlayer[i]->GetPosition().y;
 					send(g_clients[i].m_s, (char*)&p, sizeof(p), 0);
 				}
 			}
@@ -344,6 +352,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		{
 			for(int i = 0; i<MAX_USER; ++i)
 				g_ppPlayer[i]->Update(timeElapsed.count());
+			g_pScene->Update(timeElapsed.count());
 		}
 
 		recvType = ReturnTypeNumber(client_sock);

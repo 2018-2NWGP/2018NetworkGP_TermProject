@@ -286,7 +286,7 @@ void CFramework::Update(float fTimeElapsed)
 				m_ppPlayer[i]->Update(fTimeElapsed);
 			}
 		}
-		m_pCurrScene->Update(fTimeElapsed);
+		//m_pCurrScene->Update(fTimeElapsed);
 		//m_pNetwork->ReadPacket();
 	}
 }

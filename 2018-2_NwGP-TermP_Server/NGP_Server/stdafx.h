@@ -71,7 +71,7 @@
 #define DIR_LEFT		0x04
 #define DIR_RIGHT		0x08
 
-// #define USE_CONSOLE_WINDOW	// 콘솔창을 안 띄우고 싶으면 이 define을 주석 처리한다.
+//#define USE_CONSOLE_WINDOW	// 콘솔창을 안 띄우고 싶으면 이 define을 주석 처리한다.
 #ifdef USE_CONSOLE_WINDOW
 #include <stdio.h>
 #include <iostream>

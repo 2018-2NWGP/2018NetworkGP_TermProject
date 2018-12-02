@@ -72,7 +72,7 @@
 #define DIR_LEFT		0x04
 #define DIR_RIGHT		0x08
 
-#define USE_CONSOLE_WINDOW
+//#define USE_CONSOLE_WINDOW
 #ifdef USE_CONSOLE_WINDOW	// 콘솔창을 띄우는 define
 #include <stdio.h>
 #include <iostream>
