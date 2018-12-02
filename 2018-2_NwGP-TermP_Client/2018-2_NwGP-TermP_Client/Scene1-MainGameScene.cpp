@@ -24,7 +24,7 @@ void CMainScene::Render(HDC hdc)
 			m_ppPlayer[m_pNetwork->m_myid]->GetWindowLB().height, 
 			CLIENT_WIDTH, CLIENT_HEIGHT);
 	*/
-	GetBackgroundImage()->Draw(hdc, 0, 0, CLIENT_WIDTH, CLIENT_HEIGHT, m_pPlayer->GetWindowLB().w, m_pPlayer->GetWindowLB().h, CLIENT_WIDTH, CLIENT_HEIGHT);
+	GetBackgroundImage()->Draw(hdc, 0, 0, CLIENT_WIDTH, CLIENT_HEIGHT,m_pPlayer->GetWindowLB().w, m_pPlayer->GetWindowLB().h, CLIENT_WIDTH, CLIENT_HEIGHT);
 }
 
 void CMainScene::Update(float fTimeElapsed)

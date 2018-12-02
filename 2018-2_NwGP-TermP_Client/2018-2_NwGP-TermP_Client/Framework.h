@@ -37,6 +37,10 @@ private:
 	int m_TitleLength;
 
 	PlayerObject * m_pPlayer = nullptr;
+	PlayerObject** m_ppPlayer{ NULL };
+	int m_nPlayer = MAX_USER;
+
+
 	CImage PlayerImage;
 	CImage BGI;
 
@@ -84,6 +88,8 @@ public:
 	void ChangeScene(CBaseScene::SceneTag tag);
 
 	void RecvPacket();
+
+	void SetMyPlayer(int id) { m_ppPlayer[m_pNetwork->m_myid] = m_ppPlayer[id]; }
 private:
 	CBaseScene * arrScene[CBaseScene::SceneTag::Count];
 	CBaseScene * m_pCurrScene;

@@ -68,12 +68,13 @@ bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc, CNetw
 	m_fps = 0;
 
 	m_pNetwork->Initialize(m_hWnd);
-
+	m_pNetwork->SetFramework(this);
 	BuildPlayer();
+	
 	// 씬 생성
-	BuildScene();
+	//BuildScene();
 	// 최초의 씬은 무엇인가?
-	ChangeScene(CBaseScene::SceneTag::Main);
+	//ChangeScene(CBaseScene::SceneTag::Main);
 	
 	return (m_hWnd != NULL);
 }
@@ -110,7 +111,8 @@ void CFramework::BuildScene()
 		assert(!"필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
 	if (BGI.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Background Image Load Fail"), MB_OK);	
 	arrScene[CBaseScene::SceneTag::Main]->SetBackgroundImage(&BGI);
-	arrScene[CBaseScene::SceneTag::Main]->SetPlayer(m_pPlayer);
+	arrScene[CBaseScene::SceneTag::Main]->SetPlayer(m_ppPlayer[m_pNetwork->m_myid]);
+	//m_ppPlayer[m_pNetwork->m_myid]->SetID(m_pNetwork->m_myid);
 }
 
 void CFramework::BuildPlayer()
@@ -125,13 +127,28 @@ void CFramework::BuildPlayer()
 	std::uniform_int_distribution<> randW(32, 4800);
 	std::uniform_int_distribution<> randH(64, 3200);
 
-	if (!m_pPlayer) {
+	
+
+	/*if (!m_pPlayer) {
 		m_pPlayer = new PlayerObject();
 		m_pPlayer->SetPosition(800, 600);	
 		m_pPlayer->SetImage(&PlayerImage);
 		m_pPlayer->SetSize(32, 64);
 		m_pPlayer->SetBackgroundSize(4800, 3200);
 		m_pNetwork->SetPlayer(m_pPlayer);
+	}*/
+
+	if (!m_ppPlayer) {
+		m_ppPlayer = new PlayerObject*[MAX_USER];
+		for (int i = 0; i < MAX_USER; ++i)
+		{
+			m_ppPlayer[i] = new PlayerObject();
+			m_ppPlayer[i]->SetPosition(800 + i * 100, 600);
+			m_ppPlayer[i]->SetImage(&PlayerImage);
+			m_ppPlayer[i]->SetSize(32, 64);
+			m_ppPlayer[i]->SetBackgroundSize(4800, 3200);
+		}
+		m_pNetwork->SetPlayers(m_ppPlayer);
 	}
 }
 
@@ -188,9 +205,9 @@ HRESULT CFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM
 
 void CFramework::Update(float fTimeElapsed)
 {
-	if (m_pPlayer->GetIdleState())
+	if (m_ppPlayer[m_pNetwork->m_myid]->GetIdleState())
 	{
-		m_pPlayer->SetDirection(0);
+		m_ppPlayer[m_pNetwork->m_myid]->SetDirection(0);
 		int protocol;
 		CS_Msg_Change_State p;
 		p.size = sizeof(p);
@@ -200,7 +217,7 @@ void CFramework::Update(float fTimeElapsed)
 		protocol = p.type;
 		send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
 		m_pNetwork->SendPacket(&p);
-		m_pPlayer->SetIdleState();
+		m_ppPlayer[m_pNetwork->m_myid]->SetIdleState();
 	}
 	static UCHAR pKeysBuffer[256];
 	bool bProcessedByScene = false;
@@ -219,8 +236,8 @@ void CFramework::Update(float fTimeElapsed)
 		if (pKeysBuffer[VK_RIGHT] & 0xF0) { dwDirection |= DIR_RIGHT; x = 1; }
 
 		if ((pKeysBuffer['a'] & 0xF0) || (pKeysBuffer['A'] & 0xF0)) {
-			if (m_pPlayer->GetState() != melee_attack) {
-				m_pPlayer->SetState(melee_attack);
+			if (m_ppPlayer[m_pNetwork->m_myid]->GetState() != melee_attack) {
+				m_ppPlayer[m_pNetwork->m_myid]->SetState(melee_attack);
 				
 				int protocol;
 				CS_Msg_Change_State p;
@@ -238,8 +255,8 @@ void CFramework::Update(float fTimeElapsed)
 			CS_Msg_Pos_Character p;
 			p.size = sizeof(p);
 			p.Character_id = m_pNetwork->m_myid;
-			p.x = m_pPlayer->GetPosition().x;
-			p.y = m_pPlayer->GetPosition().y;
+			p.x = m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x;
+			p.y = m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y;
 			p.dwDirection = dwDirection;
 			p.type = CS_MOVE;
 			if (dwDirection != 0) {
@@ -251,11 +268,11 @@ void CFramework::Update(float fTimeElapsed)
 			}
 		}
 		
-		m_pPlayer->SetDirection(dwDirection);
+		m_ppPlayer[m_pNetwork->m_myid]->SetDirection(dwDirection);
 
 		//printf("x : %.2lf, y : %.2lf\n", m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y);
 	}
-	m_pPlayer->Update(fTimeElapsed);
+	m_ppPlayer[m_pNetwork->m_myid]->Update(fTimeElapsed);
 
 	m_pCurrScene->Update(fTimeElapsed);
 
@@ -281,7 +298,7 @@ void CFramework::PreprocessingForDraw()
 	::SetStretchBltMode(m_hDC, COLORONCOLOR);	// 쓰는 범위가 달라서 늘어나거나 줄어들 여지가 있는 경우 덮어쓴다.
 
 	m_pCurrScene->Render(m_hDC);
-	m_pPlayer->Render(m_hDC);
+	for(int i = 0; i<MAX_USER; ++i) m_ppPlayer[i]->Render(m_hDC);
 }
 
 void CFramework::OnDraw(HDC hDC)
