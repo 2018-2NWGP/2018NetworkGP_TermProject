@@ -45,6 +45,8 @@ private:
 	
 	CNetwork* m_pNetwork;
 
+	bool m_bUpdateActiveTrigger = true;
+
 public:
 	CFramework();
 	~CFramework();
@@ -84,6 +86,8 @@ public:
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 	void ChangeScene(CBaseScene::SceneTag tag);
+
+	void SetUpdateTrigger(bool trigger) { m_bUpdateActiveTrigger = trigger; }
 
 	void RecvPacket();
 private:
