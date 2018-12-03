@@ -47,7 +47,7 @@ bool CBaseObject::RectCollide(CBaseObject * other)
 	return true;
 }
 
-bool CBaseObject::ObstacleRectCollide(PlayerObject * player)
+bool CBaseObject::ObstacleRectCollide(PlayerObject * player, double distance)
 {
 	/* 이 오브젝트와 충돌한 other 오브젝트를 원래대로 밀어냄 */
 	/*

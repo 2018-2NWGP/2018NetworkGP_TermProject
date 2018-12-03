@@ -56,6 +56,6 @@ public:
 	bool RectCollide(Vec2i position, Vec2i size);
 	bool RectCollide(CBaseObject * other);
 
-	bool ObstacleRectCollide(PlayerObject * player);
+	bool ObstacleRectCollide(PlayerObject * player, double distance);
 };
 

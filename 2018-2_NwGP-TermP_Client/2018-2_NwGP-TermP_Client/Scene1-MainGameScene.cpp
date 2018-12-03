@@ -55,7 +55,7 @@ void CMainScene::Update(float fTimeElapsed)
 	for (int i = 0; i < m_nObjects; ++i)
 		if (m_ppObjects[i]) {
 			m_ppObjects[i]->Update(fTimeElapsed);
-			if (m_ppObjects[i]->ObstacleRectCollide(m_pPlayer)) {
+			if (m_ppObjects[i]->RectCollide(m_pPlayer)) {
 				printf("플레이어 : (x, y) : (%d, %d), 가로 : %d, 세로 : %d\n", m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y, m_pPlayer->GetSize().w, m_pPlayer->GetSize().h);
 				printf("%d번째 객체와 플레이어가 충돌. - (x, y) : (%d, %d), 가로 : %d, 세로 : %d\n", i, m_ppObjects[i]->GetPosition().x, m_ppObjects[i]->GetPosition().y, m_ppObjects[i]->GetSize().w, m_ppObjects[i]->GetSize().h);
 			}
