@@ -8,7 +8,7 @@ private:
 	unsigned char dirrection = 0;	// 방향이 어딜 보고 있는지 명시적으로 저장 후 사용
 	unsigned int m_id = 0;
 	int m_nHP = 100;	
-	int m_nAttack = 15;
+	int m_nAttackDamage = 15;
 	unsigned int m_nScore = 0;
 
 	double m_dMoveSpeed = 100.0;	// 이동속도
@@ -22,6 +22,8 @@ private:
 	float walkAnimation_runtime = 0.0f;		// 걷는 애니메이션 속도를 제어하기 위한 변수
 	float attackAnimation_runtime = 0.0f;	// 공격 애니메이션 속도를 제어하기 위한 변수
 	
+	int m_nMeleeAttackRange = 16;	// 공격 충돌박스가 발생할 중점 위치를 제어하기 위한 공격사거리 변수
+	Vec2i m_v2dMeleeAttachReach = { 32, 32 };	// 공격 충돌박스의 가로세로 크기를 제어해줄 변수
 
 	// 맵 스크롤링을 위하여 월드 좌표와 화면 좌표를 바꿔주기 위한 변수
 	int window_left = 0;
@@ -29,24 +31,39 @@ private:
 
 	ObjectState m_State = idle;
 
+
 public:
 	PlayerObject();
 	virtual ~PlayerObject();
 
 	virtual void Update(float fTimeElapsed = 1);
 
-	void SetDirection(DWORD dwDir) { directionBit = dwDir; }
+	void SetDirectionBit(DWORD dwDir) { directionBit = dwDir; }
+	DWORD GetDirectionBit() const { return directionBit; }
+	unsigned char GetDirection() const { return dirrection; }
+
 	void SetMovingSpeed(double speed) { m_dMoveSpeed = speed; }
+	double GetMovingSpeed() const { return m_dMoveSpeed; }
 	void SetAttackSpeed(float speed) { m_fAttackMotionSpeed = speed; }
 
 	void SetID(unsigned int id) { m_id = id; }
 	unsigned int GetID() const { return m_id; }
 
-	int GetAttack() const { return m_nAttack; }
+	int GetAttackDamage() const { return m_nAttackDamage; }
 
 	void SetState(ObjectState state) { m_State = state; }
 	ObjectState GetState() { return m_State; }
 
+	void CenterPlayerScrolling() {
+		window_left = clamp(0, int(GetPosition().x) - CLIENT_WIDTH / 2, int(GetBackgroundSize().width - CLIENT_WIDTH));
+		window_bottom = clamp(0, int(GetPosition().y) - CLIENT_HEIGHT / 2, int(GetBackgroundSize().height - CLIENT_HEIGHT));
+	}
+	void OtherScolling(CBaseObject * Center) {
+		window_left = clamp(0, int(Center->GetPosition().x) - CLIENT_WIDTH / 2, int(GetBackgroundSize().width - CLIENT_WIDTH));
+		window_bottom = clamp(0, int(Center->GetPosition().y) - CLIENT_HEIGHT / 2, int(GetBackgroundSize().height - CLIENT_HEIGHT));
+	}
 	Vec2i GetWindowLB() { return { (unsigned int)window_left, (unsigned int)window_bottom }; }
+
+	bool RectAttackCollide(CBaseObject* Target);
 };
 

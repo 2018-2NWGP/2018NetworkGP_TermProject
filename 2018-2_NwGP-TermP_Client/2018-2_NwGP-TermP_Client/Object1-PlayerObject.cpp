@@ -13,7 +13,6 @@ PlayerObject::~PlayerObject()
 
 void PlayerObject::Update(float fTimeElapsed)
 {
-	//printf("%d, %d\n", m_State, directionBit);
 	if (m_State != melee_attack) {
 		AttackFrame = 0;
 		attackAnimation_runtime = 0.0f;

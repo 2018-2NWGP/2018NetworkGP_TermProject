@@ -44,29 +44,19 @@ void CMainScene::Update(float fTimeElapsed)
 		if (m_ppObjects[i]) {
 			m_ppObjects[i]->Update(fTimeElapsed);
 			for (int j = 0; j < MAX_USER; ++j) {
-				if (m_ppObjects[i]->ObstacleRectCollide(m_ppPlayer[j])) {
-					//DisplayText("Boom\n");
-					printf("boom\n");
-					//printf("플레이어 : (x, y) : (%d, %d), 가로 : %d, 세로 : %d\n", m_ppPlayer[i]->GetPosition().x, m_pPlayer->GetPosition().y, m_pPlayer->GetSize().w, m_pPlayer->GetSize().h);
-					//printf("%d번째 객체와 플레이어가 충돌. - (x, y) : (%d, %d), 가로 : %d, 세로 : %d\n", i, m_ppObjects[i]->GetPosition().x, m_ppObjects[i]->GetPosition().y, m_ppObjects[i]->GetSize().w, m_ppObjects[i]->GetSize().h);
+				double distance = m_ppPlayer[j]->GetMovingSpeed() * fTimeElapsed;
+				if (distance < 1.0) distance = 1.0;	// 최소보정, 1 미만의 값인 경우 픽셀 좌표가 바뀌지 않기 때문
+				while (m_ppObjects[i]->ObstacleRectCollide(m_ppPlayer[j], distance)) {					
+					
 				}
+				//printf("플레이어 : (x, y) : (%d, %d), 가로 : %d, 세로 : %d\n", m_ppPlayer[i]->GetPosition().x, m_pPlayer->GetPosition().y, m_pPlayer->GetSize().w, m_pPlayer->GetSize().h);
+				//printf("%d번째 객체와 플레이어가 충돌. - (x, y) : (%d, %d), 가로 : %d, 세로 : %d\n", i, m_ppObjects[i]->GetPosition().x, m_ppObjects[i]->GetPosition().y, m_ppObjects[i]->GetSize().w, m_ppObjects[i]->GetSize().h);
 			}
 		}
 }
 
+
 bool CMainScene::ProcessInput(unsigned char* KeyBuffer)
 {
-	/*
-	if (m_ppPlayer[m_pNetwork->m_myid]) {
-		DWORD dwDirection = 0;
-		if (KeyBuffer[VK_UP] & 0xF0) dwDirection |= DIR_UP;
-		if (KeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_DOWN;
-		if (KeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
-		if (KeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
-		if ((KeyBuffer['a'] & 0xF0) || (KeyBuffer['A'] & 0xF0)) m_ppPlayer[m_pNetwork->m_myid]->SetState(melee_attack);
-		m_ppPlayer[m_pNetwork->m_myid]->SetDirection(dwDirection);
-	}
-	return true;
-	*/
 	return false;
 }

@@ -371,7 +371,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			if (timeElapsed.count() > MAX_FRAMETIME)
 			{
 				//dwDirection |= DIR_RIGHT;
-				g_ppPlayer[temp.Character_id]->SetDirection(dwDirection);
+				g_ppPlayer[temp.Character_id]->SetDirectionBit(dwDirection);
 				//g_Player->Update(g_timeElapsed.count());
 
 			}

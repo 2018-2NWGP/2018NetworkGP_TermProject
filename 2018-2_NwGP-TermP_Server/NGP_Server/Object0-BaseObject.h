@@ -2,6 +2,9 @@
 
 // 모든 오브젝트의 기본 정보를 담고 있는 부모 클래스.
 // 이 클래스를 상속하여 오브젝트를 파생시킨다.
+
+class PlayerObject;
+
 class CBaseObject
 {
 private:
@@ -53,6 +56,6 @@ public:
 	bool RectCollide(Vec2i position, Vec2i size);
 	bool RectCollide(CBaseObject * other);
 
-	bool ObstacleRectCollide(CBaseObject * other);
+	bool ObstacleRectCollide(PlayerObject * player, double distance);
 };
 

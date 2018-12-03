@@ -13,8 +13,6 @@ PlayerObject::~PlayerObject()
 
 void PlayerObject::Update(float fTimeElapsed)
 {
-	window_left = clamp(0, int(GetPosition().x) - CLIENT_WIDTH / 2, int(GetBackgroundSize().width - CLIENT_WIDTH));
-	window_bottom = clamp(0, int(GetPosition().y) - CLIENT_HEIGHT / 2, int(GetBackgroundSize().height - CLIENT_HEIGHT));
 	if (m_State != melee_attack) {
 		AttackFrame = 0;
 		attackAnimation_runtime = 0.0f;
@@ -67,3 +65,42 @@ void PlayerObject::Update(float fTimeElapsed)
 	}
 }
 
+bool PlayerObject::RectAttackCollide(CBaseObject * Target)
+{
+	CBaseObject * meleeAttackHitBox = new CBaseObject();
+	switch (dirrection) {
+	case 8:
+		meleeAttackHitBox->SetPosition(GetPosition().x, GetPosition().y - m_nMeleeAttackRange);
+		break;
+	case 2:
+		meleeAttackHitBox->SetPosition(GetPosition().x, GetPosition().y + m_nMeleeAttackRange);
+		break;
+	case 4:
+		meleeAttackHitBox->SetPosition(GetPosition().x - m_nMeleeAttackRange, GetPosition().y);
+		break;
+	case 6:
+		meleeAttackHitBox->SetPosition(GetPosition().x + m_nMeleeAttackRange, GetPosition().y);
+		break;
+	case 7:
+		meleeAttackHitBox->SetPosition(GetPosition().x - (sqrt(0.5) * m_nMeleeAttackRange), GetPosition().y - (sqrt(0.5) * m_nMeleeAttackRange));
+		break;
+	case 9:
+		meleeAttackHitBox->SetPosition(GetPosition().x + (sqrt(0.5) * m_nMeleeAttackRange), GetPosition().y - (sqrt(0.5) * m_nMeleeAttackRange));
+		break;
+	case 1:
+		meleeAttackHitBox->SetPosition(GetPosition().x - (sqrt(0.5) * m_nMeleeAttackRange), GetPosition().y + (sqrt(0.5) * m_nMeleeAttackRange));
+		break;
+	case 3:
+		meleeAttackHitBox->SetPosition(GetPosition().x + (sqrt(0.5) * m_nMeleeAttackRange), GetPosition().y + (sqrt(0.5) * m_nMeleeAttackRange));
+		break;
+	default:
+		meleeAttackHitBox->SetPosition(GetPosition().x, GetPosition().y);
+		break;
+	}
+	meleeAttackHitBox->SetSize(m_v2dMeleeAttachReach);
+	if (Target)
+		return Target->RectCollide(meleeAttackHitBox->GetPosition(), meleeAttackHitBox->GetSize());
+	// return Target->RectCollide(meleeAttackHitBox);
+	else
+		return false;
+}

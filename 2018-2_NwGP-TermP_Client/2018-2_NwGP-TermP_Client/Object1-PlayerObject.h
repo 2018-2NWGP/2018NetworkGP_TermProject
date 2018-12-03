@@ -8,7 +8,7 @@ private:
 	unsigned char dirrection = 0;	// 방향이 어딜 보고 있는지 명시적으로 저장 후 사용
 	unsigned int m_id = 0;
 	int m_nHP = 100;	
-	int m_nAttack = 15;
+	int m_nAttackDamage = 15;
 	unsigned int m_nScore = 0;
 
 	double m_dMoveSpeed = 100.0;	// 이동속도
@@ -40,15 +40,17 @@ public:
 	virtual void Render(HDC hdc);
 
 	void SetDirectionBit(DWORD dwDir) { directionBit = dwDir; }
+	DWORD GetDirectionBit() const { return directionBit; }
 	unsigned char GetDirection() const { return dirrection; }
-	
+
 	void SetMovingSpeed(double speed) { m_dMoveSpeed = speed; }
+	double GetMovingSpeed() const { return m_dMoveSpeed; }
 	void SetAttackSpeed(float speed) { m_fAttackMotionSpeed = speed; }
 
 	void SetID(unsigned int id) { m_id = id; }
 	unsigned int GetID() const { return m_id; }
 
-	int GetAttack() const { return m_nAttack; }
+	int GetAttackDamage() const { return m_nAttackDamage; }
 
 	void SetState(ObjectState state) { m_State = state; }
 	ObjectState GetState() const { return m_State; }
