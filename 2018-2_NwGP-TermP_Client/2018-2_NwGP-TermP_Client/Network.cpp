@@ -23,7 +23,9 @@ bool CNetwork::Initialize(HWND hWnd)
 
 	// socket()
 	m_mysocket = socket(AF_INET, SOCK_STREAM, 0);
+#ifdef USE_CONSOLE_WINDOW
 	if (m_mysocket == INVALID_SOCKET) printf("家南积己角菩");
+#endif
 
 	WSAAsyncSelect(m_mysocket, m_hWnd, WM_SOCKET, FD_READ);
 
@@ -92,7 +94,9 @@ void CNetwork::ProcessPacket(char *ptr)
 	}
 	
 	default:
+#ifdef USE_CONSOLE_WINDOW
 		printf("Unknown PACKET type [%d]\n", ptr[1]);
+#endif
 		break;
 	}
 	

@@ -46,6 +46,8 @@ public:
 	virtual CImage* GetUIWindowImage() const { return m_UserInterfaceWindow; }
 	virtual void SetGaugeImage(CImage* GaugeImage) { m_GaugeImage = GaugeImage; }
 	virtual CImage* GetGaugeImage() const { return m_GaugeImage; }
+	virtual void SetButtonImageArray(CImage * ButtonImageArray) { m_ButtonImage = ButtonImageArray; }
+	virtual CImage* GetButtonImageArray() const { return m_ButtonImage; }
 
 	void SetPlayer(PlayerObject* pPlayer) { m_pPlayer = pPlayer; }
 	
@@ -55,6 +57,8 @@ protected:
 	CImage* m_BackGroundImage = nullptr;
 	CImage* m_GaugeImage = nullptr;
 	CImage* m_UserInterfaceWindow = nullptr;
+	CImage* m_ButtonImage = nullptr;
+
 	PlayerObject * m_pPlayer = nullptr;
 	//CNetwork* m_pNetwork{ NULL };
 };

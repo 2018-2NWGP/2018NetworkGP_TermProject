@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Framework.h"
-#include "Scene1-MainGameScene.h"
+#include "Scene1-TitleScene.h"
+#include "Scene2-MainGameScene.h"
 #include "Object1-PlayerObject.h"
 #include <cassert>
 
@@ -103,16 +104,41 @@ void CFramework::CreatebackBuffer()
 
 void CFramework::BuildScene()
 {
-	// arrScene[SceneTag::Title] = new TitleScene();	// 이런 방식으로 씬을 만들 것이다.
+
+	// Title Scene
+	arrScene[CBaseScene::SceneTag::Title] = new TitleScene();
+	if (FAILED(TitleImage.Load(TEXT("ResourceImage\\Title_1024x806.png"))))
+		assert(!"타이틀 화면 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
+	if (TitleImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Title Image Load Fail"), MB_OK);
+	arrScene[CBaseScene::SceneTag::Title]->SetBackgroundImage(&TitleImage);
+	
+	if (FAILED(ButtonImage[0].Load(TEXT("ResourceImage\\Button_by_JHL.png"))))
+		assert(!"버튼 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
+	if (ButtonImage[0].IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Idle Button Image Load Fail"), MB_OK);
+	
+	if (FAILED(ButtonImage[1].Load(TEXT("ResourceImage\\ButtonOn_by_JHL.png"))))
+		assert(!"활성화된 버튼 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
+	if (ButtonImage[1].IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("OnButton Image Load Fail"), MB_OK);
+
+	if (FAILED(ButtonImage[2].Load(TEXT("ResourceImage\\ButtonPush_by_JHL.png"))))
+		assert(!"눌려진 버튼 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
+	if (ButtonImage[2].IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Pushed Button Image Load Fail"), MB_OK);
+	arrScene[CBaseScene::SceneTag::Title]->SetButtonImageArray(ButtonImage);
+	
+
+	// Main Scene
+
 	arrScene[CBaseScene::SceneTag::Main] = new CMainScene();
 	/*
 	if (FAILED(BGI.Load(TEXT("ResourceImage\\TestField_1024x768.png"))))
-	assert(!"테스트필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");*/
+	assert(!"테스트필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
+	*/
 	/*
 	if (FAILED(BGI.Load(TEXT("ResourceImage\\High_Field-GoldDragon.png"))))
-	assert(!"필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");*/
+	assert(!"필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
+	*/
 	if (FAILED(BackGroundImage.Load(TEXT("ResourceImage\\BattleStage-Forest.png"))))
-		assert(!"필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
+		assert(!"스테이지 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
 	if (BackGroundImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Background Image Load Fail"), MB_OK);
 	arrScene[CBaseScene::SceneTag::Main]->SetBackgroundImage(&BackGroundImage);
 	if (FAILED(UserInterfaceWindowImage.Load(TEXT("ResourceImage\\UI_Window_1024x768.png"))))
@@ -123,6 +149,7 @@ void CFramework::BuildScene()
 		assert(!"게이지 바 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
 	if (GaugeImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("GaugeBar Image Load Fail"), MB_OK);
 	arrScene[CBaseScene::SceneTag::Main]->SetGaugeImage(&GaugeImage);
+
 	arrScene[CBaseScene::SceneTag::Main]->SetPlayer(m_ppPlayer[m_pNetwork->m_myid]);
 	arrScene[CBaseScene::SceneTag::Main]->BuildObjects();
 	//m_ppPlayer[m_pNetwork->m_myid]->SetID(m_pNetwork->m_myid);
@@ -273,7 +300,9 @@ void CFramework::Update(float fTimeElapsed)
 				protocol = p.type;
 				send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
 				m_pNetwork->SendPacket(&p);
+#ifdef USE_CONSOLE_WINDOW
 				printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
+#endif
 			}
 			m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(dwDirection);
 		}
@@ -281,15 +310,22 @@ void CFramework::Update(float fTimeElapsed)
 			if (m_ppPlayer[i]) {
 				if (m_pNetwork->m_myid == i) {
 					m_ppPlayer[i]->CenterPlayerScrolling();
+#ifdef USE_CONSOLE_WINDOW
 					printf("Player[%d] : (x : %d, y : %d)\n", m_pNetwork->m_myid, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y);
+#endif
 				}
 				else {
 					m_ppPlayer[i]->OtherScolling(m_ppPlayer[m_pNetwork->m_myid]);
 				}
 				for (int j = i + 1; j < MAX_USER; ++j) {
-					if (m_ppPlayer[j])
-						if (m_ppPlayer[i]->RectAttackCollide(m_ppPlayer[j]))
-							printf("%d번 플레이어에게 공격!\n", j);
+					if (m_ppPlayer[j]) {
+						if (m_ppPlayer[i]->GetState() == melee_attack)
+							if (m_ppPlayer[i]->RectAttackCollide(m_ppPlayer[j])) {
+#ifdef USE_CONSOLE_WINDOW
+								printf("%d번 플레이어에게 공격!\n", j);
+#endif
+							}
+					}
 				}
 				m_ppPlayer[i]->Update(fTimeElapsed);
 			}
@@ -423,6 +459,7 @@ LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 	case WM_DESTROY:
 		::SetUserDataPtr(hWnd, NULL);
 		::PostQuitMessage(0);
+		::exit(1);
 		break;
 	case WM_SOCKET:
 		switch (WSAGETSELECTEVENT(lParam)) {

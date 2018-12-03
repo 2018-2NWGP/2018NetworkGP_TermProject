@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Scene1-MainGameScene.h"
+#include "Scene2-MainGameScene.h"
 #include "Object1-PlayerObject.h"
 #include <fstream>
 
@@ -21,7 +21,11 @@ void CMainScene::BuildObjects()
 	for (int i = 0; i < m_nObjects; ++i) m_ppObjects[i] = nullptr;
 	std::ifstream in("ResourceImage\\BattleStage_Forest-Obstacle.txt");
 	unsigned int x, y, w, h;
-	if (!in) std::cout << "충돌 체크용 방해 오브젝트 파일이 존재하지 않습니다.\n";
+	if (!in) {
+#ifdef USE_CONSOLE_WINDOW
+		std::cout << "충돌 체크용 방해 오브젝트 파일이 존재하지 않습니다.\n";
+#endif
+	}
 	else {
 		int i = 0;
 		while (in >> x >> y >> w >> h) {
@@ -30,7 +34,9 @@ void CMainScene::BuildObjects()
 			m_ppObjects[i] = new CBaseObject();
 			m_ppObjects[i]->SetPosition(x, y);
 			m_ppObjects[i]->SetSize(w, h);
+#ifdef USE_CONSOLE_WINDOW
 			printf("파일 로드 : %d 번째 충돌 오브젝트 위치 : (%d, %d) / 크기 : (%d, %d) 생성\n", i++, x, y, w, h);
+#endif
 		}
 	}
 }
@@ -57,8 +63,10 @@ void CMainScene::Update(float fTimeElapsed)
 		if (m_ppObjects[i]) {
 			m_ppObjects[i]->Update(fTimeElapsed);
 			if (m_ppObjects[i]->RectCollide(m_pPlayer)) {
+#ifdef USE_CONSOLE_WINDOW
 				printf("플레이어 : (x, y) : (%d, %d), 가로 : %d, 세로 : %d\n", m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y, m_pPlayer->GetSize().w, m_pPlayer->GetSize().h);
 				printf("%d번째 객체와 플레이어가 충돌. - (x, y) : (%d, %d), 가로 : %d, 세로 : %d\n", i, m_ppObjects[i]->GetPosition().x, m_ppObjects[i]->GetPosition().y, m_ppObjects[i]->GetSize().w, m_ppObjects[i]->GetSize().h);
+#endif
 			}
 		}
 }

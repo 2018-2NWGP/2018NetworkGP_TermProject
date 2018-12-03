@@ -42,6 +42,8 @@ private:
 
 	CImage PlayerImage;
 	CImage BackGroundImage;
+	CImage TitleImage;
+	CImage ButtonImage[3];
 	CImage UserInterfaceWindowImage;
 	CImage GaugeImage;
 	

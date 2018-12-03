@@ -15,7 +15,6 @@ public:
 	void UserInterface_Render(HDC hdc) override;
 
 private:
-
 	CBaseObject** m_ppObjects;
 	int m_nObjects;
 };

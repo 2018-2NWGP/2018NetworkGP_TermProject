@@ -3,11 +3,11 @@
 // 들어 있는 포함 파일입니다.
 //
 
-#define SERVERPORT 9000
-#define BUFSIZE    512
+#define SERVERPORT	9000
+#define BUFSIZE		512
 
-#define SERVERIP   "119.195.232.145" //"127.0.0.1"
-#define WM_SOCKET		WM_USER+1
+#define SERVERIP	"127.0.0.1"
+#define WM_SOCKET	WM_USER+1
 #pragma once
 
 #include "targetver.h"
