@@ -18,8 +18,11 @@ bool CNetwork::Initialize(HWND hWnd)
 	int retval{ 0 };
 	// 윈속 초기화
 	WSADATA wsa;
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+#ifdef USE_CONSOLE_WINDOW
 		printf("이상 무");
+#endif
+	}
 
 	// socket()
 	m_mysocket = socket(AF_INET, SOCK_STREAM, 0);

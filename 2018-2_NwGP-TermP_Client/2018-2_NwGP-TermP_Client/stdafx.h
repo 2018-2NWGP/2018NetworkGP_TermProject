@@ -6,7 +6,7 @@
 #define SERVERPORT	9000
 #define BUFSIZE		512
 
-#define SERVERIP	"127.0.0.1"
+#define SERVERIP	"192.168.20.208" //"127.0.0.1"
 #define WM_SOCKET	WM_USER+1
 #pragma once
 
@@ -72,6 +72,7 @@
 #define DIR_LEFT		0x04
 #define DIR_RIGHT		0x08
 
+#define MAX_HP	100
 
 #define USE_CONSOLE_WINDOW
 #ifdef USE_CONSOLE_WINDOW	// 콘솔창을 띄우는 define

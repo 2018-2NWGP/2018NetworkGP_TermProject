@@ -124,10 +124,8 @@ void CFramework::BuildScene()
 		assert(!"눌려진 버튼 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
 	if (ButtonImage[2].IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Pushed Button Image Load Fail"), MB_OK);
 	arrScene[CBaseScene::SceneTag::Title]->SetButtonImageArray(ButtonImage);
-	
 
 	// Main Scene
-
 	arrScene[CBaseScene::SceneTag::Main] = new CMainScene();
 	/*
 	if (FAILED(BGI.Load(TEXT("ResourceImage\\TestField_1024x768.png"))))
@@ -181,7 +179,35 @@ void CFramework::BuildPlayer()
 		for (int i = 0; i < MAX_USER; ++i)
 		{
 			m_ppPlayer[i] = new PlayerObject();
-			m_ppPlayer[i]->SetPosition(800+ (i * 100), 600);
+			switch (i) {
+			case 0:
+				m_ppPlayer[i]->SetPosition(400, 400);
+				break;
+			case 1:
+				m_ppPlayer[i]->SetPosition(2000, 2000);
+				break;
+			case 2:
+				m_ppPlayer[i]->SetPosition(2000, 400);
+				break;
+			case 3:
+				m_ppPlayer[i]->SetPosition(400, 2000);
+				break;
+			case 4:
+				m_ppPlayer[i]->SetPosition(1200, 560);
+				break;
+			case 5:
+				m_ppPlayer[i]->SetPosition(1200, 1840);
+				break;
+			case 6:
+				m_ppPlayer[i]->SetPosition(560, 1200);
+				break;
+			case 7:
+				m_ppPlayer[i]->SetPosition(1840, 1200);
+				break;
+			case 8:
+				m_ppPlayer[i]->SetPosition(1200, 1200);
+				break;			
+			}
 			m_ppPlayer[i]->SetImage(&PlayerImage);
 			m_ppPlayer[i]->SetSize(32, 64);
 			m_ppPlayer[i]->SetBackgroundSize(2400, 2400);		
@@ -317,9 +343,9 @@ void CFramework::Update(float fTimeElapsed)
 				else {
 					m_ppPlayer[i]->OtherScolling(m_ppPlayer[m_pNetwork->m_myid]);
 				}
-				for (int j = i + 1; j < MAX_USER; ++j) {
-					if (m_ppPlayer[j]) {
-						if (m_ppPlayer[i]->GetState() == melee_attack)
+				for (int j = 0; j < MAX_USER; ++j) {
+					if (m_ppPlayer[i]->GetState() == melee_attack) {
+						if (m_ppPlayer[j])
 							if (m_ppPlayer[i]->RectAttackCollide(m_ppPlayer[j])) {
 #ifdef USE_CONSOLE_WINDOW
 								printf("%d번 플레이어에게 공격!\n", j);
@@ -353,9 +379,70 @@ void CFramework::PreprocessingForDraw()
 	::SetBkColor(m_hDC, TRANSPARENT);	// 알파블렌딩 허용 가능하게 설정
 	::SetStretchBltMode(m_hDC, COLORONCOLOR);	// 쓰는 범위가 달라서 늘어나거나 줄어들 여지가 있는 경우 덮어쓴다.
 
-	m_pCurrScene->Render(m_hDC);
-	for(int i = 0; i < MAX_USER; ++i) m_ppPlayer[i]->Render(m_hDC);
-	m_pCurrScene->UserInterface_Render(m_hDC);
+	if (m_pCurrScene) m_pCurrScene->Render(m_hDC);
+	for (int i = 0; i < MAX_USER; ++i) if (m_ppPlayer[i]) m_ppPlayer[i]->Render(m_hDC);	
+
+	if (m_pCurrScene == arrScene[CBaseScene::SceneTag::Main]) {
+#ifdef UNICODE
+		TCHAR buf[100];
+		for (int i = 0; i < MAX_USER; ++i) {
+			if (m_ppPlayer[i]) {
+				wsprintf(buf, TEXT("ID %d"), i);
+				UserInterfaceWindowImage.Draw(m_hDC, m_ppPlayer[i]->GetPosition().x - m_ppPlayer[i]->GetWindowLB().w - m_ppPlayer[i]->GetSize().width - 20, m_ppPlayer[i]->GetPosition().y - m_ppPlayer[i]->GetWindowLB().h - m_ppPlayer[i]->GetSize().height / 2 - 17, 100, 17, 0, 0, 1024, 768);
+				if (i == m_pNetwork->m_myid)
+					DrawFont(buf, m_ppPlayer[i]->GetPosition().x - m_ppPlayer[i]->GetWindowLB().w - m_ppPlayer[i]->GetSize().width - 10, m_ppPlayer[i]->GetPosition().y - m_ppPlayer[i]->GetWindowLB().h - m_ppPlayer[i]->GetSize().height / 2 - 15, 15, 100, TEXT("궁서체"), RGB(0, 255, 127));
+				else
+					DrawFont(buf, m_ppPlayer[i]->GetPosition().x - m_ppPlayer[i]->GetWindowLB().w - m_ppPlayer[i]->GetSize().width - 10, m_ppPlayer[i]->GetPosition().y - m_ppPlayer[i]->GetWindowLB().h - m_ppPlayer[i]->GetSize().height / 2 - 15, 15, 100, TEXT("궁서체"), RGB(255, 0, 0));
+			}
+		}
+#else
+		char buf[100];
+		for (int i = 0; i < MAX_USER; ++i) {
+			if (m_ppPlayer[i]) {
+				sprintf(buf, TEXT("ID %d"), i);
+				UserInterfaceWindowImage.Draw(m_hDC, m_ppPlayer[i]->GetPosition().x - m_ppPlayer[i]->GetWindowLB().w - m_ppPlayer[i]->GetSize().width - 20, m_ppPlayer[i]->GetPosition().y - m_ppPlayer[i]->GetWindowLB().h - m_ppPlayer[i]->GetSize().height / 2 - 17, 100, 17, 0, 0, 1024, 768);
+				if (i == m_pNetwork->m_myid)
+					DrawFont(buf, m_ppPlayer[i]->GetPosition().x - m_ppPlayer[i]->GetWindowLB().w - m_ppPlayer[i]->GetSize().width - 10, m_ppPlayer[i]->GetPosition().y - m_ppPlayer[i]->GetWindowLB().h - m_ppPlayer[i]->GetSize().height / 2 - 15, 15, 100, TEXT("궁서체"), RGB(0, 255, 127));
+				else
+					DrawFont(buf, m_ppPlayer[i]->GetPosition().x - m_ppPlayer[i]->GetWindowLB().w - m_ppPlayer[i]->GetSize().width - 10, m_ppPlayer[i]->GetPosition().y - m_ppPlayer[i]->GetWindowLB().h - m_ppPlayer[i]->GetSize().height / 2 - 15, 15, 100, TEXT("궁서체"), RGB(255, 0, 0));
+			}
+		}
+#endif
+
+		if (m_pCurrScene) m_pCurrScene->UserInterface_Render(m_hDC);
+
+#ifdef UNICODE	
+		DrawFont(TEXT("HP"), 25, 30, 15, 0, TEXT("궁서체"), RGB(255, 0, 0));
+		wsprintf(buf, TEXT("%d/%d"), m_ppPlayer[m_pNetwork->m_myid]->GetHP(), MAX_HP);
+		DrawFont(buf, 375, 30, 15, 0, TEXT("궁서체"), RGB(255, 0, 0));
+		wsprintf(buf, TEXT("Your ID : %d"), m_pNetwork->m_myid);
+		DrawFont(buf, 25, 75, 15, 0, TEXT("궁서체"), RGB(0, 255, 255));
+		wsprintf(buf, TEXT("Score : %d"), m_ppPlayer[m_pNetwork->m_myid]->GetScore());
+		DrawFont(buf, 250, 75, 15, 0, TEXT("궁서체"), RGB(0, 255, 0));
+		for (int i = 0; i < MAX_USER; ++i) {
+			if (m_ppPlayer[i]) {
+				if (i == m_pNetwork->m_myid) continue;
+				wsprintf(buf, TEXT("ID %d"), i);
+				DrawFont(buf, 805, 255 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 10, 0, TEXT("궁서체"), RGB(255, 127, 127));
+				DrawFont(TEXT("Score"), 915, 255 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 10, 0, TEXT("궁서체"), RGB(255, 255, 0));
+				wsprintf(buf, TEXT("%d"), m_ppPlayer[i]->GetScore());
+				DrawFont(buf, 915, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 10, 0, TEXT("궁서체"), RGB(255, 255, 0));
+				if (GaugeImage) {
+					GaugeImage.Draw(m_hDC, 805, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 100, 15, 9, 0, 1, 8);	// 100 == MAX_HP
+					GaugeImage.Draw(m_hDC, 805, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), m_ppPlayer[i]->GetHP(), 15, 0, 0, 9, 8);
+				}
+			}
+		}
+#else
+		DrawFont(TEXT("HP"), 25, 30, 15, 0, TEXT("궁서체"), RGB(255, 0, 0));
+		sprintf(buf, TEXT("%d/%d"), m_ppPlayer[m_pNetwork->m_myid]->GetHP(), MAX_HP);
+		DrawFont(buf, 375, 30, 15, 0, TEXT("궁서체"), RGB(255, 0, 0));
+		sprintf(buf, TEXT("Your ID : %d"), m_pNetwork->m_myid);
+		DrawFont(buf, 25, 75, 15, 0, TEXT("궁서체"), RGB(0, 255, 255));
+		sprintf(buf, TEXT("Score : %d"), m_ppPlayer[m_pNetwork->m_myid]->GetScore());
+		DrawFont(buf, 250, 75, 15, 0, TEXT("궁서체"), RGB(0, 255, 0));
+#endif
+	}
 }
 
 void CFramework::OnDraw(HDC hDC)

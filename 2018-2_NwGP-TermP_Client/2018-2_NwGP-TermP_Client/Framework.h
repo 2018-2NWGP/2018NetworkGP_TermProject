@@ -94,6 +94,28 @@ public:
 	void SetUpdateTrigger(bool trigger) { m_bUpdateActiveTrigger = trigger; }
 
 	void RecvPacket();
+
+#ifdef UNICODE
+	void DrawFont(const TCHAR * text, int x, int y, int font_size = 25, int font_weight = 0, LPCTSTR lp = TEXT("±Ã¼­Ã¼"), COLORREF text_color = RGB(255, 255, 255)){
+		HFONT myFont = CreateFont(font_size, font_size, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, TEXT("±Ã¼­Ã¼"));
+		HFONT oldFont = (HFONT)SelectObject(m_hDC, myFont);
+		SetBkMode(m_hDC, TRANSPARENT);
+		SetTextColor(m_hDC, text_color);
+		TextOut(m_hDC, x, y, text, _tcslen(text));
+		SelectObject(m_hDC, oldFont);
+		DeleteObject(myFont);
+	}
+#else
+	void DrawFont(const char * text, int x, int y, int font_size = 25, int font_weight = 0, LPCTSTR lp = TEXT("±Ã¼­Ã¼"), COLORREF text_color = RGB(255, 255, 255)) {
+		HFONT myFont = CreateFont(font_size, font_size, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, TEXT("±Ã¼­Ã¼"));
+		HFONT oldFont = (HFONT)SelectObject(m_hDC, myFont);
+		SetBkMode(m_hDC, TRANSPARENT);
+		SetTextColor(m_hDC, text_color);
+		TextOut(m_hDC, x, y, text, strlen(text));
+		SelectObject(m_hDC, oldFont);
+		DeleteObject(myFont);
+	}
+#endif
 private:
 	CBaseScene * arrScene[CBaseScene::SceneTag::Count];
 	CBaseScene * m_pCurrScene;

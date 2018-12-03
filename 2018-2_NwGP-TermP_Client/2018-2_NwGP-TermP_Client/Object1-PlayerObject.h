@@ -7,7 +7,7 @@ private:
 	DWORD directionBit = 0;	 // 외부에서 받아와서 연산하기 위한 방향비트 정보
 	unsigned char dirrection = 0;	// 방향이 어딜 보고 있는지 명시적으로 저장 후 사용
 	unsigned int m_id = 0;
-	int m_nHP = 100;	
+	int m_nHP = MAX_HP;	
 	int m_nAttackDamage = 15;
 	unsigned int m_nScore = 0;
 
@@ -53,6 +53,9 @@ public:
 
 	void SetID(unsigned int id) { m_id = id; }
 	unsigned int GetID() const { return m_id; }
+
+	void SetScore(unsigned int score) { m_nScore = score; }
+	unsigned int GetScore() const { return m_nScore; }
 
 	int GetAttackDamage() const { return m_nAttackDamage; }
 

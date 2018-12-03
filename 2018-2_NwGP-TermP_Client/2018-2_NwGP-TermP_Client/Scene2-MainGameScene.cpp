@@ -90,9 +90,12 @@ bool CMainScene::ProcessInput(unsigned char* KeyBuffer)
 
 void CMainScene::UserInterface_Render(HDC hdc)
 {
-	//if (m_UserInterfaceWindow) m_UserInterfaceWindow->Draw(hdc, 50, 50, 200, 150, 0, 0, 1024, 768);
-	if (m_GaugeImage)
-		m_GaugeImage->Draw(hdc, 10, 10, 300, 40, 9, 0, 1, 8);
-	if (m_GaugeImage)
-		m_GaugeImage->Draw(hdc, 10, 10, m_pPlayer->GetHP() * 3, 40, 0, 0, 9, 8);
+	if (m_UserInterfaceWindow) {
+		m_UserInterfaceWindow->Draw(hdc, 10, 10, 500, 100, 0, 0, 1024, 768);
+		m_UserInterfaceWindow->Draw(hdc, 800, 250, 200, 50 * (MAX_USER - 1), 0, 0, 1024, 768);
+	}
+	if (m_GaugeImage) {
+		m_GaugeImage->Draw(hdc, 65, 25, 300, 30, 9, 0, 1, 8);	// 300 == MAX_HP * 3
+		m_GaugeImage->Draw(hdc, 65, 25, m_pPlayer->GetHP() * 3, 30, 0, 0, 9, 8);
+	}
 }

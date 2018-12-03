@@ -202,9 +202,37 @@ DWORD WINAPI ServerMain(LPVOID arg)
 		for (int i = 0; i < MAX_USER; ++i)
 		{
 			g_ppPlayer[i] = new PlayerObject();
-			g_ppPlayer[i]->SetPosition(800 + (i * 100), 600);
+			switch (i) {
+			case 0:
+				g_ppPlayer[i]->SetPosition(400, 400);
+				break;
+			case 1:
+				g_ppPlayer[i]->SetPosition(2000, 2000);
+				break;
+			case 2:
+				g_ppPlayer[i]->SetPosition(2000, 400);
+				break;
+			case 3:
+				g_ppPlayer[i]->SetPosition(400, 2000);
+				break;
+			case 4:
+				g_ppPlayer[i]->SetPosition(1200, 560);
+				break;
+			case 5:
+				g_ppPlayer[i]->SetPosition(1200, 1840);
+				break;
+			case 6:
+				g_ppPlayer[i]->SetPosition(560, 1200);
+				break;
+			case 7:
+				g_ppPlayer[i]->SetPosition(1840, 1200);
+				break;
+			case 8:
+				g_ppPlayer[i]->SetPosition(1200, 1200);
+				break;
+			}
 			g_ppPlayer[i]->SetSize(32, 64);
-			g_ppPlayer[i]->SetBackgroundSize(4800, 3200);
+			g_ppPlayer[i]->SetBackgroundSize(2400, 2400);
 		}
 	}
 

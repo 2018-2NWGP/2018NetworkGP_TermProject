@@ -46,13 +46,22 @@ void CMainScene::Update(float fTimeElapsed)
 			for (int j = 0; j < MAX_USER; ++j) {
 				double distance = m_ppPlayer[j]->GetMovingSpeed() * fTimeElapsed;
 				if (distance < 1.0) distance = 1.0;	// 최소보정, 1 미만의 값인 경우 픽셀 좌표가 바뀌지 않기 때문
-				while (m_ppObjects[i]->ObstacleRectCollide(m_ppPlayer[j], distance)) {					
-					
-				}
-				//printf("플레이어 : (x, y) : (%d, %d), 가로 : %d, 세로 : %d\n", m_ppPlayer[i]->GetPosition().x, m_pPlayer->GetPosition().y, m_pPlayer->GetSize().w, m_pPlayer->GetSize().h);
-				//printf("%d번째 객체와 플레이어가 충돌. - (x, y) : (%d, %d), 가로 : %d, 세로 : %d\n", i, m_ppObjects[i]->GetPosition().x, m_ppObjects[i]->GetPosition().y, m_ppObjects[i]->GetSize().w, m_ppObjects[i]->GetSize().h);
+				while (m_ppObjects[i]->ObstacleRectCollide(m_ppPlayer[j], distance));
 			}
 		}
+
+	for (int i = 0; i < MAX_USER; ++i) {
+		for (int j = 0; j < MAX_USER; ++j) {
+			if (m_ppPlayer[i]->GetState() == melee_attack) {
+				if (m_ppPlayer[i]->RectAttackCollide(m_ppPlayer[j])) {
+#ifdef USE_CONSOLE_WINDOW
+					printf("%d번 플레이어가 %d번 플레이어에게 공격!\n", i, j);
+#endif
+					m_ppPlayer[j]->HitByDamage(m_ppPlayer[i]->GetAttackDamage());
+				}
+			}
+		}
+	}
 }
 
 

@@ -46,6 +46,10 @@ public:
 	double GetMovingSpeed() const { return m_dMoveSpeed; }
 	void SetAttackSpeed(float speed) { m_fAttackMotionSpeed = speed; }
 
+	void SetHP(int hp) { m_nHP = hp; }
+	void HitByDamage(int damage) { m_nHP -= damage; }
+	int GetHP() const { return m_nHP; }
+
 	void SetID(unsigned int id) { m_id = id; }
 	unsigned int GetID() const { return m_id; }
 
