@@ -111,10 +111,18 @@ void CFramework::BuildScene()
 	/*
 	if (FAILED(BGI.Load(TEXT("ResourceImage\\High_Field-GoldDragon.png"))))
 	assert(!"필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");*/
-	if (FAILED(BGI.Load(TEXT("ResourceImage\\BattleStage-Forest.png"))))
+	if (FAILED(BackGroundImage.Load(TEXT("ResourceImage\\BattleStage-Forest.png"))))
 		assert(!"필드 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
-	if (BGI.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Background Image Load Fail"), MB_OK);
-	arrScene[CBaseScene::SceneTag::Main]->SetBackgroundImage(&BGI);
+	if (BackGroundImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("Background Image Load Fail"), MB_OK);
+	arrScene[CBaseScene::SceneTag::Main]->SetBackgroundImage(&BackGroundImage);
+	if (FAILED(UserInterfaceWindowImage.Load(TEXT("ResourceImage\\UI_Window_1024x768.png"))))
+		assert(!"UI 창 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
+	if (UserInterfaceWindowImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("UI Window Image Load Fail"), MB_OK);
+	arrScene[CBaseScene::SceneTag::Main]->SetUIWindowImage(&UserInterfaceWindowImage);
+	if (FAILED(GaugeImage.Load(TEXT("ResourceImage\\Gauge_Bar.png"))))
+		assert(!"게이지 바 이미지 파일이 제대로 로드되지 않았습니다!\n경로나 이름, 파일을 확인해주세요.");
+	if (GaugeImage.IsNull())MessageBox(m_hWnd, TEXT("Fail"), TEXT("GaugeBar Image Load Fail"), MB_OK);
+	arrScene[CBaseScene::SceneTag::Main]->SetGaugeImage(&GaugeImage);
 	arrScene[CBaseScene::SceneTag::Main]->SetPlayer(m_ppPlayer[m_pNetwork->m_myid]);
 	arrScene[CBaseScene::SceneTag::Main]->BuildObjects();
 	//m_ppPlayer[m_pNetwork->m_myid]->SetID(m_pNetwork->m_myid);
@@ -310,7 +318,8 @@ void CFramework::PreprocessingForDraw()
 	::SetStretchBltMode(m_hDC, COLORONCOLOR);	// 쓰는 범위가 달라서 늘어나거나 줄어들 여지가 있는 경우 덮어쓴다.
 
 	m_pCurrScene->Render(m_hDC);
-	for(int i = 0; i<MAX_USER; ++i) m_ppPlayer[i]->Render(m_hDC);
+	for(int i = 0; i < MAX_USER; ++i) m_ppPlayer[i]->Render(m_hDC);
+	m_pCurrScene->UserInterface_Render(m_hDC);
 }
 
 void CFramework::OnDraw(HDC hDC)

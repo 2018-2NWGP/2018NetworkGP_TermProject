@@ -5,6 +5,7 @@
 
 CMainScene::CMainScene()
 {
+
 }
 
 CMainScene::~CMainScene()
@@ -77,4 +78,13 @@ bool CMainScene::ProcessInput(unsigned char* KeyBuffer)
 	return true;
 	*/
 	return false;
+}
+
+void CMainScene::UserInterface_Render(HDC hdc)
+{
+	//if (m_UserInterfaceWindow) m_UserInterfaceWindow->Draw(hdc, 50, 50, 200, 150, 0, 0, 1024, 768);
+	if (m_GaugeImage)
+		m_GaugeImage->Draw(hdc, 10, 10, 300, 40, 9, 0, 1, 8);
+	if (m_GaugeImage)
+		m_GaugeImage->Draw(hdc, 10, 10, m_pPlayer->GetHP() * 3, 40, 0, 0, 9, 8);
 }

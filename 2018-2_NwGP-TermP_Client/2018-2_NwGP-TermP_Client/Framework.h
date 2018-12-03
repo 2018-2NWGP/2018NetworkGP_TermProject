@@ -41,7 +41,9 @@ private:
 	int m_nPlayer = MAX_USER;
 
 	CImage PlayerImage;
-	CImage BGI;
+	CImage BackGroundImage;
+	CImage UserInterfaceWindowImage;
+	CImage GaugeImage;
 	
 	CNetwork* m_pNetwork;
 

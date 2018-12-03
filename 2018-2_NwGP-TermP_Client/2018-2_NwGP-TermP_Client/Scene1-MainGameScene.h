@@ -12,8 +12,10 @@ public:
 	void Update(float fTimeElapsed) override;
 
 	bool ProcessInput(unsigned char* KeyBuffer) override;
+	void UserInterface_Render(HDC hdc) override;
 
 private:
+
 	CBaseObject** m_ppObjects;
 	int m_nObjects;
 };

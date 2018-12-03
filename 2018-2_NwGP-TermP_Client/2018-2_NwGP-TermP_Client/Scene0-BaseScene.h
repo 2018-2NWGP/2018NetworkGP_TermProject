@@ -36,17 +36,25 @@ public:
 	virtual void BuildObjects() = 0;
 	virtual void Update(float fTimeElapsed) = 0;
 	virtual void Render(HDC hdc) = 0;
+	virtual void UserInterface_Render(HDC hdc) = 0;
 
 	virtual bool ProcessInput(unsigned char* KeyBuffer) = 0;
 	
 	virtual void SetBackgroundImage(CImage* img) { m_BackGroundImage = img; }
 	virtual CImage* GetBackgroundImage() const { return m_BackGroundImage; }
+	virtual void SetUIWindowImage(CImage* UIWindowImage) { m_UserInterfaceWindow = UIWindowImage; }
+	virtual CImage* GetUIWindowImage() const { return m_UserInterfaceWindow; }
+	virtual void SetGaugeImage(CImage* GaugeImage) { m_GaugeImage = GaugeImage; }
+	virtual CImage* GetGaugeImage() const { return m_GaugeImage; }
+
 	void SetPlayer(PlayerObject* pPlayer) { m_pPlayer = pPlayer; }
 	
 protected:
 	SceneTag m_Tag;
 	Framework* m_pFramework;	// 인자로 받아오는게 아니라 동적할당을 해온다.
 	CImage* m_BackGroundImage = nullptr;
+	CImage* m_GaugeImage = nullptr;
+	CImage* m_UserInterfaceWindow = nullptr;
 	PlayerObject * m_pPlayer = nullptr;
 	//CNetwork* m_pNetwork{ NULL };
 };
