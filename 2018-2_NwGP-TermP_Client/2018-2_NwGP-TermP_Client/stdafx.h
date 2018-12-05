@@ -6,7 +6,7 @@
 #define SERVERPORT	9000
 #define BUFSIZE		512
 
-#define SERVERIP	"192.168.20.208" //"127.0.0.1"
+#define SERVERIP	"127.0.0.1"//"192.168.20.208"
 #define WM_SOCKET	WM_USER+1
 #pragma once
 
@@ -15,7 +15,7 @@
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
 // Windows 헤더 파일:
 
-#include <winsock.h>
+#include <winsock2.h>
 #include <windows.h>
 
 

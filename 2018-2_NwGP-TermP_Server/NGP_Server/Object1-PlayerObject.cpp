@@ -25,9 +25,9 @@ void PlayerObject::Update(float fTimeElapsed)
 	{
 		double distance = m_dMoveSpeed * fTimeElapsed /* * 333333*/;
 #ifdef USE_CONSOLE_WINDOW
-		printf("m_dMoveSpeed : %.10lf\n", m_dMoveSpeed);
-		printf("fTimeElapsed : %.10lf\n", fTimeElapsed);
-		printf("distance : %.10lf\n", distance);
+		//printf("m_dMoveSpeed : %.10lf\n", m_dMoveSpeed);
+		//printf("fTimeElapsed : %.10lf\n", fTimeElapsed);
+		//printf("distance : %.10lf\n", distance);
 #endif
 		if (distance < 1.0) distance = 1.0;	// 최소보정, 1 미만의 값인 경우 픽셀 좌표가 바뀌지 않기 때문
 		if (directionBit & DIR_UP) {
@@ -57,13 +57,15 @@ void PlayerObject::Update(float fTimeElapsed)
 
 		if (directionBit == 0)
 			m_State = idle;
-	}
 		break;
+	}
+		
 	case melee_attack:
 		attackAnimation_runtime += (m_fAttackMotionSpeed * fTimeElapsed);
 		AttackFrame = static_cast<unsigned char>(attackAnimation_runtime) % 3;
 		if (AttackFrame > 1) 
 			m_State = idle;	
+
 		break;
 	default:
 		break;

@@ -5,8 +5,9 @@
 #define INITGUID
 #pragma comment(lib, "ws2_32.lib")
 // include important windows stuff
-#include <windows.h> 
 #include <Winsock2.h>
+#include <windows.h> 
+
 
 //참조 헤더
 #include <array>
@@ -28,6 +29,7 @@ public:
 	int m_x;
 	int m_y;
 	int m_state;
+	int m_hp;
 	char* m_buffer;
 	EXOVER m_rxover;
 	Client()
@@ -43,20 +45,36 @@ public:
 };
 
 
-//void NetworkInitialize();
-//
-//void StartRecv(int id);
-//
-//
-//void SendPacket(int id, void *ptr);
-//void SendPacketBySocket(SOCKET sock, void *ptr);
-//
-//void SendRemovePacket(int client, int object);
-//
-//void ProcessPacket(int id, char *packet);
-//
-//void DisconnectPlayer(int id);
-//
-//void accept_thread();	//새로 접속해 오는 클라이언트를 IOCP로 넘기는 역할
-//
+//////////////////////////////////////////////////////////////
+// 전역 변수
+
+//class CPlayerObject;
+//class CMainScene;
+
+extern array <Client, MAX_USER> g_clients;
+
+//extern PlayerObject* g_Player;
+//extern PlayerObject** g_ppPlayer;
+//extern CMainScene* g_pScene;
+
+//std::chrono::duration<double> g_timeElapsed;
+//std::chrono::system_clock::time_point g_current_time;
+//CRITICAL_SECTION UserDataUpdateSection;
+//////////////////////////////////////////////////////////////
+
+void SendPacket(int id, void *ptr);
+
+int recvn(SOCKET s, char *buf, int len, int flags);
+
+int ReadPacket(SOCKET sock, char* packet);
+
+int ReturnTypeNumber(SOCKET& clientSock);
+
+
+
+
+
+
+
+
 

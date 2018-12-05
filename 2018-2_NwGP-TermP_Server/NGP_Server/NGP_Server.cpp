@@ -37,6 +37,7 @@ CMainScene* g_pScene;
 
 std::chrono::duration<double> g_timeElapsed;
 std::chrono::system_clock::time_point g_current_time;
+CRITICAL_SECTION UserDataUpdateSection;
 //////////////////////////////////////////////////////////////
 
 void SendPacket(int id, void *ptr)
@@ -104,11 +105,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	if (!RegisterClass(&wndclass)) return 1;
 
 	// 윈도우 생성
-	HWND hWnd = CreateWindow("MyWndClass", "TCP 서버", WS_OVERLAPPEDWINDOW,
+	/*HWND hWnd = CreateWindow("MyWndClass", "TCP 서버", WS_OVERLAPPEDWINDOW,
 		0, 0, 800, 600, NULL, NULL, hInstance, NULL);
 	if (hWnd == NULL) return 1;
 	ShowWindow(hWnd, nCmdShow);
-	UpdateWindow(hWnd);
+	UpdateWindow(hWnd);*/
 
 	// 소켓 통신 스레드 생성
 	CreateThread(NULL, 0, ServerMain, NULL, 0, NULL);
@@ -240,6 +241,8 @@ DWORD WINAPI ServerMain(LPVOID arg)
 	
 	g_pScene->BuildObjects();
 	g_pScene->SetPlayer(g_ppPlayer);
+
+	InitializeCriticalSection(&UserDataUpdateSection);
 	// 윈속 초기화
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -281,8 +284,8 @@ DWORD WINAPI ServerMain(LPVOID arg)
 		setsockopt(client_sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
 
 		//// 접속한 클라이언트 정보 출력
-		DisplayText("\r\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\r\n",
-			inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+		//DisplayText("\r\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\r\n",
+			//inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 
 		int id = -1;
 		for (int i = 0; i < MAX_USER; ++i)
@@ -343,7 +346,7 @@ DWORD WINAPI ServerMain(LPVOID arg)
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
-	DisplayText("스레드 등록\n");
+	//DisplayText("스레드 등록\n");
 	std::chrono::system_clock::time_point current_time;
 	std::chrono::duration<double> timeElapsed;
 	SOCKET client_sock = (SOCKET)arg;
@@ -352,39 +355,68 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	int addrlen;
 	char buf[BUFSIZE + 1];
 	int sync{ NONE };
+	int myID{ NONE };
+
 	// 클라이언트 정보 얻기
 	addrlen = sizeof(clientaddr);
 	getpeername(client_sock, (SOCKADDR *)&clientaddr, &addrlen);
+	for (int i = 0; i < MAX_USER; ++i)
+	{
+		if (client_sock == g_clients[i].m_s) {
+			myID = i;
+			break;
+		}
+	}
 	int recvType{ 0 };
 	while (true) {
-		sync++;
-		//50ms마다 한번씩 위치 좌표 보내줌
-		if (sync > 50) {
-			SC_Msg_Sync p;
-			//p.Character_id = 0;
-			p.size = sizeof(p);
-			p.type = SC_SYNC;
-			for (int i = 0; i < MAX_USER; ++i) {
-				if (g_clients[i].m_isconnected) {
-					p.State = g_ppPlayer[i]->GetState();
-					p.x = g_ppPlayer[i]->GetPosition().x;
-					p.y = g_ppPlayer[i]->GetPosition().y;
-					send(g_clients[i].m_s, (char*)&p, sizeof(p), 0);
-				}
-			}
-			sync = 0;
-		}
+		//sync++;
+		////50ms마다 한번씩 위치 좌표 보내줌
+		//if (sync > 50) {
+		//	for (int i = 0; i < MAX_USER; ++i)
+		//	{
+		//		g_clients[i].m_x = g_ppPlayer[i]->GetPosition().x;
+		//		g_clients[i].m_y = g_ppPlayer[i]->GetPosition().y;
+		//		g_clients[i].m_state = g_ppPlayer[i]->GetState();
+		//		g_clients[i].m_hp = g_ppPlayer[i]->GetHP();
+		//	}
+		//	/*for (int i = 0; i < MAX_USER; ++i) {
+		//		SC_Msg_Sync p;
+		//		p.size = sizeof(p);
+		//		p.type = SC_SYNC;
+		//		p.Chracter_id = i;
+		//		p.State = g_clients[i].m_state;
+		//		p.x = g_clients[i].m_x;
+		//		p.y = g_clients[i].m_y;
+		//		p.hp = g_clients[i].m_hp;
+
+		//		for (int j = 0; j < MAX_USER; ++j)
+		//		{
+		//			if (g_clients[j].m_isconnected) {
+		//				send(g_clients[j].m_s, (char*)&p, sizeof(p), 0);
+		//				printf("ID: %d, State: %d, x: %d, y: %d, hp: %d\n", p.Chracter_id, p.State, p.x, p.y, p.hp);
+		//			}
+		//		}
+		//	}*/
+		//	sync = 0;
+		//}
 		current_time = std::chrono::system_clock::now();
 		timeElapsed = std::chrono::system_clock::now() - current_time;
+		//EnterCriticalSection(&UserDataUpdateSection);
 		if (timeElapsed.count() > MAX_FRAMETIME)
 		{
+			
 			for(int i = 0; i<MAX_USER; ++i)
 				g_ppPlayer[i]->Update(timeElapsed.count());
-			g_pScene->Update(timeElapsed.count());
+			
+			
+		}
+		//LeaveCriticalSection(&UserDataUpdateSection);
+		recvType = ReturnTypeNumber(client_sock);
+		if (!recvType) {
+			closesocket(client_sock);
+			g_clients[myID].m_isconnected = false;
 		}
 
-		recvType = ReturnTypeNumber(client_sock);
-		
 		//ProcessPacket(recvType);
 		int type, retVal{ 0 };
 		int size{ 0 };
@@ -394,18 +426,24 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			if (retVal == SOCKET_ERROR) printf("recv() Miss!\n");
 			
 			DWORD dwDirection = temp.dwDirection;
-			DisplayText("%d,%d,%d,%d\n", temp.Character_id, temp.type, temp.x, temp.y);
+			//DisplayText("%d,%d,%d,%d\n", temp.Character_id, temp.type, temp.x, temp.y);
 			timeElapsed = std::chrono::system_clock::now() - current_time;
+			
 			if (timeElapsed.count() > MAX_FRAMETIME)
 			{
 				//dwDirection |= DIR_RIGHT;
+				
 				g_ppPlayer[temp.Character_id]->SetDirectionBit(dwDirection);
+				//공격후 안움직이는 버그 해결--------------
+				g_ppPlayer[temp.Character_id]->Update(timeElapsed.count());
+				g_pScene->Update(timeElapsed.count());
 				//g_Player->Update(g_timeElapsed.count());
 
 			}
 			
 			g_clients[temp.Character_id].m_x = g_ppPlayer[temp.Character_id]->GetPosition().x;
 			g_clients[temp.Character_id].m_y = g_ppPlayer[temp.Character_id]->GetPosition().y;
+			
 			
 			SC_Msg_Pos_Character temp2;
 			temp2.Character_id = temp.Character_id;
@@ -426,10 +464,21 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		{
 			CS_Msg_Change_State temp;
 			retVal = recv(client_sock, (char*)&temp, sizeof(temp) + sizeof(int), 0);
+			//printf("Change State to %d\n", temp.State);
 			if (retVal == SOCKET_ERROR) printf("recv() Miss!\n");
+			
 			g_ppPlayer[temp.Character_id]->SetState((ObjectState)temp.State);
 			g_clients[temp.Character_id].m_state = temp.State;
+			timeElapsed = std::chrono::system_clock::now() - current_time;
 
+			if (timeElapsed.count() > MAX_FRAMETIME)
+			{
+				//dwDirection |= DIR_RIGHT;
+
+				g_pScene->Update(timeElapsed.count());
+				//g_Player->Update(g_timeElapsed.count());
+
+			}
 			SC_Msg_Change_State temp2;
 			temp2.Character_id = temp.Character_id;
 			temp2.size = sizeof(temp2);
@@ -439,15 +488,35 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 				if (g_clients[i].m_isconnected)
 					send(g_clients[i].m_s, (char*)&temp2, sizeof(temp2), 0);
 			}
+
+			/*if((ObjectState)temp2.State == melee_attack)
+			for (int i = 0; i < MAX_USER; ++i) {
+				SC_Msg_Sync p;
+				p.size = sizeof(p);
+				p.type = SC_SYNC;
+				p.Chracter_id = i;
+				p.State = g_clients[i].m_state;
+				p.x = g_clients[i].m_x;
+				p.y = g_clients[i].m_y;
+				p.hp = g_clients[i].m_hp;
+
+				for (int j = 0; j < MAX_USER; ++j)
+				{
+					if (g_clients[j].m_isconnected) {
+						send(g_clients[j].m_s, (char*)&p, sizeof(p), 0);
+						printf("ID: %d, State: %d, x: %d, y: %d, hp: %d\n", p.Chracter_id, p.State, p.x, p.y, p.hp);
+					}
+				}
+			}*/
 			recvType = -1;
 		}
 		
 	}
-
+	
 	// closesocket()
 	closesocket(client_sock);
-	DisplayText("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\r\n",
-		inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
+	//DisplayText("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\r\n",
+		//inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
 
 	return 0;
 }

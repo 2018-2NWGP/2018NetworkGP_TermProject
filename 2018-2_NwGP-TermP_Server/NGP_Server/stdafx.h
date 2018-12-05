@@ -59,6 +59,9 @@
 #include <atlImage.h>
 #include <random>
 
+//사용자 정의 헤더
+#include "NGP_Server.h"
+
 #define TITLE_MX_LENGTH 64
 #define TITLESTRING TEXT("2018-2_NetworkGameProgramming_TermProject2")
 
@@ -115,3 +118,4 @@ enum ObjectState {
 	walking = 1,
 	melee_attack = 2
 };
+

@@ -25,7 +25,7 @@ bool CNetwork::Initialize(HWND hWnd)
 	}
 
 	// socket()
-	m_mysocket = socket(AF_INET, SOCK_STREAM, 0);
+	m_mysocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, 0);
 #ifdef USE_CONSOLE_WINDOW
 	if (m_mysocket == INVALID_SOCKET) printf("소켓생성실패");
 #endif
@@ -38,7 +38,7 @@ bool CNetwork::Initialize(HWND hWnd)
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
 	serveraddr.sin_port = htons(SERVERPORT);
-	retval = connect(m_mysocket, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
+	retval = WSAConnect(m_mysocket, (sockaddr *)&serveraddr, sizeof(serveraddr), NULL, NULL, NULL, NULL);
 	
 	
 	return true;
@@ -61,6 +61,21 @@ void CNetwork::ProcessPacket(char *ptr)
 	SC_Msg_Pos_Character *my_Movepacket = reinterpret_cast<SC_Msg_Pos_Character *>(ptr);
 	switch (my_packet->type)
 	{
+	case SC_SET_HP_SCORE:
+	{
+#ifdef USE_CONSOLE_WINDOW
+		printf("여기 들어오긴 하나요?\n");
+#endif
+		SC_Msg_Set_HP_Score *my_packet = reinterpret_cast<SC_Msg_Set_HP_Score *>(ptr);
+
+		m_ppPlayer[my_packet->Character_id]->SetHP(my_packet->hp);
+		m_ppPlayer[my_packet->HIT_id]->SetScore(my_packet->score);
+#ifdef USE_CONSOLE_WINDOW
+		printf("%d번 플레이어 체력 : %d %d번 플레이어 점수 : %d\n", my_packet->Character_id, my_packet->hp
+			, my_packet->HIT_id, my_packet->score);
+#endif
+		break;
+	}
 	case SC_PUT_PLAYER:
 	{
 		SC_Msg_Put_Character *my_packet = reinterpret_cast<SC_Msg_Put_Character *>(ptr);
@@ -81,11 +96,14 @@ void CNetwork::ProcessPacket(char *ptr)
 	case SC_POS_PLAYER:
 	{
 		SC_Msg_Pos_Character *my_packet = reinterpret_cast<SC_Msg_Pos_Character *>(ptr);
-
+#ifdef USE_CONSOLE_WINDOW
+		printf("%d번 플레이어 체력 : %d\n", my_packet->Character_id, my_packet->hp);
+#endif
 		m_ppPlayer[my_packet->Character_id]->SetDirectionBit(my_packet->dwDirection);
 		m_ppPlayer[my_packet->Character_id]->SetState(walking);
 		m_ppPlayer[my_packet->Character_id]->SetPosition(my_packet->x, my_packet->y);
 		m_ppPlayer[my_packet->Character_id]->Update(my_packet->timeElapsed);
+
 		break;
 	}
 	case SC_CHANGE_STATE:
@@ -96,6 +114,17 @@ void CNetwork::ProcessPacket(char *ptr)
 		break;
 	}
 	
+//	case SC_SYNC:
+//	{
+//		SC_Msg_Sync *my_packet = reinterpret_cast<SC_Msg_Sync *>(ptr);
+//#ifdef USE_CONSOLE_WINDOW
+//		printf("%d번 플레이어 체력 : %d\n", my_packet->Chracter_id, my_packet->hp);
+//#endif
+//		m_ppPlayer[my_packet->Chracter_id]->SetHP(max(my_packet->hp,0));
+//		//m_ppPlayer[my_packet->Chracter_id]->SetPosition(my_packet->x, my_packet->y);
+//		//m_ppPlayer[my_packet->Chracter_id]->SetState((ObjectState)my_packet->State);
+//		break;
+//	}
 	default:
 #ifdef USE_CONSOLE_WINDOW
 		printf("Unknown PACKET type [%d]\n", ptr[1]);
@@ -106,35 +135,22 @@ void CNetwork::ProcessPacket(char *ptr)
 
 }
 
+int ReturnTypeNumber(SOCKET& clientSock) {
+	int type, retVal;
+
+	retVal = recv(clientSock, (char*)&type, sizeof(type), 0);
+
+	return type;
+}
 
 //
-void CNetwork::ReadPacket()
+void CNetwork::ReadPacket(SOCKET sock)
 {
-	int ret = recv(m_mysocket, m_buffer, sizeof(m_buffer), 0);
+	
+	int ret = recv(sock, m_buffer, sizeof(m_buffer), 0);
 	if (ret > 0) {
 		ProcessPacket(m_buffer);
 	}
-
-	/*BYTE *ptr = reinterpret_cast<BYTE *>(m_recv_buffer);
-
-	while (0 != iobyte) {
-		if (0 == m_in_packet_size) m_in_packet_size = ptr[0];
-		if (iobyte + m_saved_packet_size >= m_in_packet_size) {
-			memcpy(m_packet_buffer + m_saved_packet_size, ptr, m_in_packet_size - m_saved_packet_size);
-			ProcessPacket(m_packet_buffer);
-			ptr += m_in_packet_size - m_saved_packet_size;
-			iobyte -= m_in_packet_size - m_saved_packet_size;
-			m_in_packet_size = 0;
-			m_saved_packet_size = 0;
-		}
-		else {
-			memcpy(m_packet_buffer + m_saved_packet_size, ptr, iobyte);
-			m_saved_packet_size += iobyte;
-			iobyte = 0;
-		}
-
-	}*/
-
 
 }
 

@@ -25,6 +25,8 @@ struct SC_Msg_Pos_Character : public Packet
 	DWORD dwDirection;
 	float timeElapsed;
 	int dir;
+	int hp;
+	int score;
 	int x;
 	int y;
 };
@@ -52,6 +54,15 @@ struct SC_Msg_Sync : public Packet
 	BYTE State;
 	int x;
 	int y;
+	int hp;
+};
+
+struct SC_Msg_Set_HP_Score : public Packet
+{
+	BYTE Character_id;
+	BYTE HIT_id;
+	int hp;
+	int score;
 };
 
 #pragma pack(pop)
@@ -78,6 +89,7 @@ struct SC_Msg_Sync : public Packet
 #define SC_POS_PLAYER				  104
 #define SC_CHANGE_STATE				  105
 #define SC_SYNC						  106
+#define SC_SET_HP_SCORE				  107
 //Client->Server
 #define CS_MOVE						  201
 #define CS_CHANGE_STATE				  202

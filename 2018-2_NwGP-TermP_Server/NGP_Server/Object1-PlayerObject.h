@@ -8,7 +8,7 @@ private:
 	unsigned char dirrection = 0;	// 방향이 어딜 보고 있는지 명시적으로 저장 후 사용
 	unsigned int m_id = 0;
 	int m_nHP = 100;	
-	int m_nAttackDamage = 15;
+	int m_nAttackDamage = 3;
 	unsigned int m_nScore = 0;
 
 	double m_dMoveSpeed = 100.0;	// 이동속도
@@ -49,6 +49,9 @@ public:
 	void SetHP(int hp) { m_nHP = hp; }
 	void HitByDamage(int damage) { m_nHP -= damage; }
 	int GetHP() const { return m_nHP; }
+
+	void SetScore(int score) { m_nScore = score; }
+	unsigned int GetScore() const { return m_nScore; }
 
 	void SetID(unsigned int id) { m_id = id; }
 	unsigned int GetID() const { return m_id; }

@@ -35,7 +35,7 @@ void CMainScene::BuildObjects()
 			m_ppObjects[i]->SetPosition(x, y);
 			m_ppObjects[i]->SetSize(w, h);
 #ifdef USE_CONSOLE_WINDOW
-			printf("파일 로드 : %d 번째 충돌 오브젝트 위치 : (%d, %d) / 크기 : (%d, %d) 생성\n", i++, x, y, w, h);
+			//printf("파일 로드 : %d 번째 충돌 오브젝트 위치 : (%d, %d) / 크기 : (%d, %d) 생성\n", i++, x, y, w, h);
 #endif
 		}
 	}

@@ -269,96 +269,96 @@ HRESULT CFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM
 
 void CFramework::Update(float fTimeElapsed)
 {
-	if (m_bUpdateActiveTrigger) {
-		if (m_ppPlayer[m_pNetwork->m_myid]->GetIdleState())
-		{
-			m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(0);
-			int protocol;
-			CS_Msg_Change_State p;
-			p.size = sizeof(p);
-			p.Character_id = m_pNetwork->m_myid;
-			p.State = (BYTE)idle;
-			p.type = CS_CHANGE_STATE;
-			protocol = p.type;
-			send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
-			m_pNetwork->SendPacket(&p);
-			m_ppPlayer[m_pNetwork->m_myid]->SetIdleState();
-		}
-		static UCHAR pKeysBuffer[256];
-		bool bProcessedByScene = false;
-		// 플레이어를 조작하지 않는 화면에서는 해당 씬의 ProcessInput 함수를 실행
-		if (GetKeyboardState(pKeysBuffer) && m_pCurrScene) bProcessedByScene = m_pCurrScene->ProcessInput(pKeysBuffer);
-		// ProcessInput 함수의 결과값에 따라 들어오는 제어문
-		if (!bProcessedByScene)
-		{
-			DWORD dwDirection = 0;
-			//m_pPlayer->SetDirection(dwDirection);
 
-			if (pKeysBuffer[VK_UP] & 0xF0) { dwDirection |= DIR_UP; }
-			if (pKeysBuffer[VK_DOWN] & 0xF0) { dwDirection |= DIR_DOWN; }
-			if (pKeysBuffer[VK_LEFT] & 0xF0) { dwDirection |= DIR_LEFT; }
-			if (pKeysBuffer[VK_RIGHT] & 0xF0) { dwDirection |= DIR_RIGHT; }
+	/*if (m_ppPlayer[m_pNetwork->m_myid]->GetIdleState())
+	{
+		m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(0);
+		int protocol;
+		CS_Msg_Change_State p;
+		p.size = sizeof(p);
+		p.Character_id = m_pNetwork->m_myid;
+		p.State = (BYTE)idle;
+		p.type = CS_CHANGE_STATE;
+		protocol = p.type;
+		send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
+		m_pNetwork->SendPacket(&p);
+		m_ppPlayer[m_pNetwork->m_myid]->SetIdleState();
+	}*/
+	static UCHAR pKeysBuffer[256];
+	bool bProcessedByScene = false;
+	// 플레이어를 조작하지 않는 화면에서는 해당 씬의 ProcessInput 함수를 실행
+	if (GetKeyboardState(pKeysBuffer) && m_pCurrScene) bProcessedByScene = m_pCurrScene->ProcessInput(pKeysBuffer);
+	// ProcessInput 함수의 결과값에 따라 들어오는 제어문
+	if (!bProcessedByScene)
+	{
+		DWORD dwDirection = 0;
+		//m_pPlayer->SetDirection(dwDirection);
 
-			if ((pKeysBuffer['a'] & 0xF0) || (pKeysBuffer['A'] & 0xF0)) {
-				if (m_ppPlayer[m_pNetwork->m_myid]->GetState() != melee_attack) {
-					m_ppPlayer[m_pNetwork->m_myid]->SetState(melee_attack);
+		if (pKeysBuffer[VK_UP] & 0xF0) { dwDirection |= DIR_UP; }
+		if (pKeysBuffer[VK_DOWN] & 0xF0) { dwDirection |= DIR_DOWN; }
+		if (pKeysBuffer[VK_LEFT] & 0xF0) { dwDirection |= DIR_LEFT; }
+		if (pKeysBuffer[VK_RIGHT] & 0xF0) { dwDirection |= DIR_RIGHT; }
 
-					int protocol;
-					CS_Msg_Change_State p;
-					p.size = sizeof(p);
-					p.Character_id = m_pNetwork->m_myid;
-					p.State = (BYTE)melee_attack;
-					p.type = CS_CHANGE_STATE;
-					protocol = p.type;
-					send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
-					m_pNetwork->SendPacket(&p);
-				}
-			}
-			if (dwDirection != 0) {
+		if ((pKeysBuffer['a'] & 0xF0) || (pKeysBuffer['A'] & 0xF0)) {
+			if (m_ppPlayer[m_pNetwork->m_myid]->GetState() != melee_attack) {
+				m_ppPlayer[m_pNetwork->m_myid]->SetState(melee_attack);
+
 				int protocol;
-				CS_Msg_Pos_Character p;
+				CS_Msg_Change_State p;
 				p.size = sizeof(p);
 				p.Character_id = m_pNetwork->m_myid;
-				p.x = m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x;
-				p.y = m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y;
-				p.dwDirection = dwDirection;
-				p.type = CS_MOVE;
+				p.State = (BYTE)melee_attack;
+				p.type = CS_CHANGE_STATE;
 				protocol = p.type;
 				send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
 				m_pNetwork->SendPacket(&p);
-#ifdef USE_CONSOLE_WINDOW
-				printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
-#endif
-			}
-			m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(dwDirection);
-		}
-		for (int i = 0; i < MAX_USER; ++i) {
-			if (m_ppPlayer[i]) {
-				if (m_pNetwork->m_myid == i) {
-					m_ppPlayer[i]->CenterPlayerScrolling();
-#ifdef USE_CONSOLE_WINDOW
-					printf("Player[%d] : (x : %d, y : %d)\n", m_pNetwork->m_myid, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y);
-#endif
-				}
-				else {
-					m_ppPlayer[i]->OtherScolling(m_ppPlayer[m_pNetwork->m_myid]);
-				}
-				for (int j = 0; j < MAX_USER; ++j) {
-					if (m_ppPlayer[i]->GetState() == melee_attack) {
-						if (m_ppPlayer[j])
-							if (m_ppPlayer[i]->RectAttackCollide(m_ppPlayer[j])) {
-#ifdef USE_CONSOLE_WINDOW
-								printf("%d번 플레이어에게 공격!\n", j);
-#endif
-							}
-					}
-				}
-				m_ppPlayer[i]->Update(fTimeElapsed);
 			}
 		}
-		//m_pCurrScene->Update(fTimeElapsed);
-		//m_pNetwork->ReadPacket();
+		if (dwDirection != 0) {
+			int protocol;
+			CS_Msg_Pos_Character p;
+			p.size = sizeof(p);
+			p.Character_id = m_pNetwork->m_myid;
+			p.x = m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x;
+			p.y = m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y;
+			p.dwDirection = dwDirection;
+			p.type = CS_MOVE;
+			protocol = p.type;
+			send(m_pNetwork->m_mysocket, (char*)&protocol, sizeof(protocol), 0);
+			m_pNetwork->SendPacket(&p);
+#ifdef USE_CONSOLE_WINDOW
+			//printf("Packet: {size : %d, type : %d, id : %d, x : %d, y : %d}\n", p.size, p.type, m_pNetwork->m_myid, p.x, p.y);
+#endif
+		}
+		m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(dwDirection);
 	}
+	for (int i = 0; i < MAX_USER; ++i) {
+		if (m_ppPlayer[i]) {
+			if (m_pNetwork->m_myid == i) {
+				m_ppPlayer[i]->CenterPlayerScrolling();
+#ifdef USE_CONSOLE_WINDOW
+				//printf("Player[%d] : (x : %d, y : %d)\n", m_pNetwork->m_myid, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().x, m_ppPlayer[m_pNetwork->m_myid]->GetPosition().y);
+#endif
+			}
+			else {
+				m_ppPlayer[i]->OtherScolling(m_ppPlayer[m_pNetwork->m_myid]);
+			}
+//			for (int j = 0; j < MAX_USER; ++j) {
+//				if (m_ppPlayer[i]->GetState() == melee_attack) {
+//					if (m_ppPlayer[j])
+//						if (m_ppPlayer[i]->RectAttackCollide(m_ppPlayer[j])) {
+//#ifdef USE_CONSOLE_WINDOW
+//							//printf("%d번 플레이어에게 공격!\n", j);
+//#endif
+//						}
+//				}
+//			}
+			m_ppPlayer[i]->Update(fTimeElapsed);
+		}
+	}
+	//m_pCurrScene->Update(fTimeElapsed);
+	//m_pNetwork->ReadPacket();
+
 }
 
 void CFramework::SetBKColor(COLORREF color)
@@ -429,7 +429,7 @@ void CFramework::PreprocessingForDraw()
 				DrawFont(buf, 915, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 10, 0, TEXT("궁서체"), RGB(255, 255, 0));
 				if (GaugeImage) {
 					GaugeImage.Draw(m_hDC, 805, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 100, 15, 9, 0, 1, 8);	// 100 == MAX_HP
-					GaugeImage.Draw(m_hDC, 805, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), m_ppPlayer[i]->GetHP(), 15, 0, 0, 9, 8);
+					GaugeImage.Draw(m_hDC, 805, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), max(m_ppPlayer[i]->GetHP(),0), 15, 0, 0, 9, 8);
 				}
 			}
 		}
@@ -551,6 +551,7 @@ LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 	case WM_SOCKET:
 		switch (WSAGETSELECTEVENT(lParam)) {
 		case FD_READ:
+			//printf("fuck");
 			self->RecvPacket();
 			break;
 		}
@@ -569,5 +570,5 @@ void CFramework::ChangeScene(CBaseScene::SceneTag tag)
 
 void CFramework::RecvPacket()
 {
-	m_pNetwork->ReadPacket();
+	m_pNetwork->ReadPacket(m_pNetwork->m_mysocket);
 }
