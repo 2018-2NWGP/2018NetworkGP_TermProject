@@ -7,7 +7,6 @@
 #include "NGP_Server.h"
 #include "Object1-PlayerObject.h"
 #include "Scene1-MainGameScene.h"
-
 #define SERVERPORT 9000
 #define BUFSIZE    512
 #define THREADCNT 3
@@ -356,7 +355,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	char buf[BUFSIZE + 1];
 	int sync{ NONE };
 	int myID{ NONE };
-
+	std::ifstream in("info.txt");
 	// 클라이언트 정보 얻기
 	addrlen = sizeof(clientaddr);
 	getpeername(client_sock, (SOCKADDR *)&clientaddr, &addrlen);
@@ -510,7 +509,34 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			}*/
 			recvType = -1;
 		}
-		
+		if (recvType == CS_LOGIN_ID) {
+			CS_Msg_Demand_LoginID lp;
+			retVal = recv(client_sock, (char*)&lp, sizeof(lp), 0);
+			if (retVal == SOCKET_ERROR) printf("recv() Miss!\n");
+			
+			char p_id[255];
+			int p_pw;
+			if (!in) {
+				std::cout << "경로가 잘못되어있습니다." << std::endl;
+			}
+			else {
+				while (in >> p_id >> p_pw)
+				{
+					if (strcmp(lp.id, p_id) == 0 && lp.pw == p_pw) {
+						CS_Msg_Demand_LoginID lp3;
+						strcpy(lp3.id, lp.id);
+						lp3.size = sizeof(lp3);
+						lp3.pw = lp.pw;
+						lp3.type = CS_LOGIN_ID;
+
+						if (g_clients[lp.my_id].m_isconnected)
+							send(g_clients[lp.my_id].m_s, (char*)&lp3, sizeof(lp3), 0);
+					}
+					else
+						std::cout << "다시";
+				}
+			}
+		}
 	}
 	
 	// closesocket()

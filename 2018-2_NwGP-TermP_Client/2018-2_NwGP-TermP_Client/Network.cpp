@@ -85,7 +85,7 @@ void CNetwork::ProcessPacket(char *ptr)
 			m_myid = id;
 			m_idIsSet = true;
 			m_pFramework->BuildScene();
-			m_pFramework->ChangeScene(CBaseScene::SceneTag::Main);
+			m_pFramework->ChangeScene(CBaseScene::SceneTag::Title);
 			//printf("id is set");
 		}
 		if (m_myid != id) {
@@ -113,6 +113,14 @@ void CNetwork::ProcessPacket(char *ptr)
 		m_ppPlayer[my_packet->Character_id]->SetState((ObjectState)my_packet->State);
 		break;
 	}
+	case CS_LOGIN_ID:
+	{
+		CS_Msg_Demand_LoginID *my_packet = reinterpret_cast<CS_Msg_Demand_LoginID *>(ptr);
+		m_pFramework->ChangeScene(CBaseScene::SceneTag::Main);
+
+		break;
+	}
+	
 	
 //	case SC_SYNC:
 //	{

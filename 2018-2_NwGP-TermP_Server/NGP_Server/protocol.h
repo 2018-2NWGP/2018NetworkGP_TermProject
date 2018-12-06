@@ -65,6 +65,15 @@ struct SC_Msg_Set_HP_Score : public Packet
 	int score;
 };
 
+struct CS_Msg_Demand_LoginID : public Packet
+{
+	char id[2];
+	short pw;
+	short my_id;
+};
+
+
+
 #pragma pack(pop)
 
 #define MAX_BUFF_SIZE 4000
@@ -93,8 +102,7 @@ struct SC_Msg_Set_HP_Score : public Packet
 //Client->Server
 #define CS_MOVE						  201
 #define CS_CHANGE_STATE				  202
-
-
+#define CS_LOGIN_ID					  203
 
 
 

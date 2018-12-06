@@ -4,7 +4,13 @@
 #include "Scene2-MainGameScene.h"
 #include "Object1-PlayerObject.h"
 #include <cassert>
+#include <fstream>
+CNetwork* m_pNetwork;
+HINSTANCE hInst2;
+BOOL CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+// 편집 컨트롤 출력 함수
 
+HWND hEdit1, hEdit2; // 편집 컨트롤
 
 template<typename T>
 T GetUserDataPtr(HWND hWnd)
@@ -76,7 +82,7 @@ bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc, CNetw
 	// 씬 생성
 	//BuildScene();
 	// 최초의 씬은 무엇인가?
-	//ChangeScene(CBaseScene::SceneTag::Main);
+	ChangeScene(CBaseScene::SceneTag::Title);
 	
 	return (m_hWnd != NULL);
 }
@@ -269,7 +275,11 @@ HRESULT CFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM
 
 void CFramework::Update(float fTimeElapsed)
 {
-
+	/*if (checklogin == true)
+	{
+		ChangeScene(CBaseScene::SceneTag::Main);
+		checklogin = false;
+	}*/
 	/*if (m_ppPlayer[m_pNetwork->m_myid]->GetIdleState())
 	{
 		m_ppPlayer[m_pNetwork->m_myid]->SetDirectionBit(0);
@@ -380,8 +390,9 @@ void CFramework::PreprocessingForDraw()
 	::SetStretchBltMode(m_hDC, COLORONCOLOR);	// 쓰는 범위가 달라서 늘어나거나 줄어들 여지가 있는 경우 덮어쓴다.
 
 	if (m_pCurrScene) m_pCurrScene->Render(m_hDC);
-	for (int i = 0; i < MAX_USER; ++i) if (m_ppPlayer[i]) m_ppPlayer[i]->Render(m_hDC);	
-
+	if (m_pCurrScene == arrScene[CBaseScene::SceneTag::Main]) {
+		for (int i = 0; i < MAX_USER; ++i) if (m_ppPlayer[i]) m_ppPlayer[i]->Render(m_hDC);
+	}
 	if (m_pCurrScene == arrScene[CBaseScene::SceneTag::Main]) {
 #ifdef UNICODE
 		TCHAR buf[100];
@@ -505,6 +516,11 @@ LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 	switch (nMessageID)
 	{
 	case WM_LBUTTONDOWN:
+		if (self->m_pCurrScene == self->arrScene[CBaseScene::SceneTag::Title]) {
+			//self->m_pCurrScene->Login();
+			DialogBox(hInst2, MAKEINTRESOURCE(IDD_DIALOG1), NULL, (DLGPROC)DlgProc);
+		}
+			break;
 	case WM_LBUTTONUP:
 
 	case WM_RBUTTONDOWN:
@@ -571,4 +587,59 @@ void CFramework::ChangeScene(CBaseScene::SceneTag tag)
 void CFramework::RecvPacket()
 {
 	m_pNetwork->ReadPacket(m_pNetwork->m_mysocket);
+}
+HWND hwnd2;
+CFramework* self2 = ::GetUserDataPtr<CFramework*>(hwnd2);
+BOOL CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	
+	char id[255];
+	//std::ifstream in("ResourceImage\\info.txt");
+	int x, y, pw;
+	pw = 0;
+	int id_protocol, pw_protocol;
+	//if (!self2)
+		//return ::DefWindowProc(hDlg, uMsg, wParam, lParam);	// 메시지 처리를 OS에게 넘긴다.
+	switch (uMsg) {
+	case WM_INITDIALOG:
+		hEdit1 = GetDlgItem(hDlg, IDC_EDIT1);
+		hEdit2 = GetDlgItem(hDlg, IDC_EDIT2);
+		//SendMessage(hEdit1, EM_SETLIMITTEXT, BUFSIZE, 0);
+		//SendMessage(hEdit2, EM_SETLIMITTEXT, BUFSIZE, 0);
+		return TRUE;
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case IDOK:
+			x = GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT1));
+			y = GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT2));
+			GetDlgItemText(hDlg, IDC_EDIT1, (LPTSTR)id, x + 1);
+			
+			pw = GetDlgItemInt(hDlg, IDC_EDIT2, NULL, FALSE);
+			
+			CS_Msg_Demand_LoginID lp;
+			strcpy(lp.id, id);
+			lp.pw = pw;
+			lp.my_id = m_pNetwork->m_myid;
+			lp.size = sizeof(lp);
+			lp.type = CS_LOGIN_ID;
+			id_protocol = lp.type;
+			
+			
+			
+			send(m_pNetwork->m_mysocket, (char*)&id_protocol, sizeof(id_protocol), 0);
+			m_pNetwork->SendPacket(&lp);
+			std::cout << lp.pw<<" "<<lp.my_id<<""<<lp.id<< std::endl;
+			
+			
+			EndDialog(hDlg, IDCANCEL);
+			
+			
+			break;
+		case IDCANCEL:
+			EndDialog(hDlg, IDCANCEL);
+			return TRUE;
+		}
+		return FALSE;
+	}
+	return 0;
 }

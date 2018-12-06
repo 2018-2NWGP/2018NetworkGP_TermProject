@@ -47,14 +47,14 @@ private:
 	CImage UserInterfaceWindowImage;
 	CImage GaugeImage;
 	
-	CNetwork* m_pNetwork;
+	
 
 	bool m_bUpdateActiveTrigger = true;
 
 public:
 	CFramework();
 	~CFramework();
-
+	//CNetwork* m_pNetwork;
 	bool OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT &rc, CNetwork* pNetwork); // rc는 윈도우크기이고, m_rcClient에 저장한다.
 	void CreatebackBuffer();	// HBITMAP을 만든다.
 	void BuildScene();
@@ -88,7 +88,7 @@ public:
 										// 윈도우 메시지 아래에 불리는 함수가 얘다. 모든 로직이 이 안에서 처리되기 떄문이다.
 
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
+	//BOOL CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void ChangeScene(CBaseScene::SceneTag tag);
 
 	void SetUpdateTrigger(bool trigger) { m_bUpdateActiveTrigger = trigger; }

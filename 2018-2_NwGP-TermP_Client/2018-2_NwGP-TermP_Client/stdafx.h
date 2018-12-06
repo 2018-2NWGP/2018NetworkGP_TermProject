@@ -17,7 +17,7 @@
 
 #include <winsock2.h>
 #include <windows.h>
-
+#include "resource1.h"
 
 // C 런타임 헤더 파일입니다.
 #include <stdlib.h>
