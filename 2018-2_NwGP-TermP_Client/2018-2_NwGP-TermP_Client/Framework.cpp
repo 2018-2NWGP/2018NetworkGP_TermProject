@@ -628,7 +628,7 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			
 			send(m_pNetwork->m_mysocket, (char*)&id_protocol, sizeof(id_protocol), 0);
 			m_pNetwork->SendPacket(&lp);
-			std::cout << lp.pw<<" "<<lp.my_id<<""<<lp.id<< std::endl;
+			std::cout << lp.pw<<"  "<<lp.id<< std::endl;
 			
 			
 			EndDialog(hDlg, IDCANCEL);
