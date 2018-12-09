@@ -93,9 +93,25 @@ void CMainScene::UserInterface_Render(HDC hdc)
 	if (m_UserInterfaceWindow) {
 		m_UserInterfaceWindow->Draw(hdc, 10, 10, 500, 100, 0, 0, 1024, 768);
 		m_UserInterfaceWindow->Draw(hdc, 800, 250, 200, 50 * (MAX_USER - 1), 0, 0, 1024, 768);
+		//m_UserInterfaceWindow->Draw(hdc, 600, 10, 300, 50, 0, 0, 1024, 768);
 	}
 	if (m_GaugeImage) {
 		m_GaugeImage->Draw(hdc, 65, 25, 300, 30, 9, 0, 1, 8);	// 300 == MAX_HP * 3
 		m_GaugeImage->Draw(hdc, 65, 25, m_pPlayer->GetHP() * 3, 30, 0, 0, 9, 8);
 	}
+}
+
+bool CMainScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	return false;
+}
+
+bool CMainScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	return false;
+}
+
+HRESULT CMainScene::OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	return E_NOTIMPL;
 }

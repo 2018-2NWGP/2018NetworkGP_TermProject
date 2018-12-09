@@ -47,9 +47,24 @@ private:
 	CImage UserInterfaceWindowImage;
 	CImage GaugeImage;
 	
-	
-
 	bool m_bUpdateActiveTrigger = true;
+
+	FMOD_SYSTEM * soundSystem;
+	
+	FMOD_CHANNEL *BGM_channel;
+	FMOD_CHANNEL *EffectChannel;
+
+	FMOD_SOUND *TitleSound;
+	FMOD_SOUND *BattleSound;
+	FMOD_SOUND *WinSound;
+	FMOD_SOUND *LoseSound;
+
+	FMOD_SOUND *Effect_SlashSound;
+	FMOD_SOUND *Effect_HitSound;
+	FMOD_SOUND *Effect_DeathSound;
+
+	float m_CurrentTime = 0.f;
+	float m_CurrentTimeElapsed = 0.f;
 
 public:
 	CFramework();
@@ -63,7 +78,9 @@ public:
 
 	bool OnDestroy()
 	{
+		FMOD_System_Release(soundSystem);
 		if (m_hbrBackground) ::DeleteObject(m_hbrBackground);
+		
 
 		::SelectObject(m_hDC, NULL);
 		if (m_hBitmapBackBuffer)  ::DeleteObject(m_hBitmapBackBuffer);
@@ -92,6 +109,9 @@ public:
 	void ChangeScene(CBaseScene::SceneTag tag);
 
 	void SetUpdateTrigger(bool trigger) { m_bUpdateActiveTrigger = trigger; }
+	void ZeroCurrentTime() { m_CurrentTime = 0.f; }
+	void AddCurrentTime(float time) { m_CurrentTime += time; }
+	void SetTimeElapsed(float fTimeElapsed) { m_CurrentTimeElapsed = fTimeElapsed; }
 
 	void RecvPacket();
 

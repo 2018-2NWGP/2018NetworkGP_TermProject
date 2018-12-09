@@ -65,6 +65,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		{
 			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 			{
+				if (msg.message == WM_QUIT) break;
 				::TranslateMessage(&msg);
 				::DispatchMessage(&msg);
 			}

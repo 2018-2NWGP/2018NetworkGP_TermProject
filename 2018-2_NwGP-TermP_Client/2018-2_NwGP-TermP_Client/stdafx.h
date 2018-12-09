@@ -24,12 +24,14 @@
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
+#include <math.h>
 
 // C++ 런타임 헤더 파일입니다.
 #include <iostream>
 #include <chrono>
 #include <string>
-#include <math.h>
+
+#include <fmod.h>
 
 #pragma comment(lib, "ws2_32")
 #pragma pack(1)
@@ -61,7 +63,7 @@
 #include <random>
 
 #define TITLE_MX_LENGTH 64
-#define TITLESTRING TEXT("2018-2_NetworkGameProgramming_TermProject2")
+#define TITLESTRING TEXT("Lord of Slayer")
 
 // 초기 클라이언트 크기
 #define CLIENT_WIDTH	1024

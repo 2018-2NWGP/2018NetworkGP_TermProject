@@ -5,8 +5,9 @@
 #include "Object1-PlayerObject.h"
 #include <cassert>
 #include <fstream>
+
 CNetwork* m_pNetwork;
-HINSTANCE hInst2;
+
 BOOL CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 // 편집 컨트롤 출력 함수
 
@@ -44,6 +45,18 @@ bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc, CNetw
 	m_rcClient.bottom -= m_rcClient.top;
 	m_rcClient.left = 0;
 	m_rcClient.top = 0;
+
+	FMOD_System_Create(&soundSystem); // 생성 
+	FMOD_System_Init(soundSystem, 10, FMOD_INIT_NORMAL, NULL); // 초기화 
+
+	FMOD_System_CreateSound(soundSystem, "Sound\\YSO201.Prelude to the Omen.mp3", FMOD_LOOP_NORMAL, 0, &TitleSound);
+	FMOD_System_CreateSound(soundSystem, "Sound\\Demetori-영지의 태양신앙 Nuclear Fusion.mp3", FMOD_LOOP_NORMAL, 0, &BattleSound);
+	FMOD_System_CreateSound(soundSystem, "Sound\\YSO201.Prelude to the Omen.mp3", FMOD_LOOP_NORMAL, 0, &WinSound);
+	FMOD_System_CreateSound(soundSystem, "Sound\\YSO201.Prelude to the Omen.mp3", FMOD_LOOP_NORMAL, 0, &LoseSound);
+
+	FMOD_System_CreateSound(soundSystem, "Sound\\Effect_Slash.wav", FMOD_LOOP_OFF, 0, &Effect_SlashSound);
+	FMOD_System_CreateSound(soundSystem, "Sound\\Effect_Hit.wav", FMOD_LOOP_OFF, 0, &Effect_HitSound);
+	FMOD_System_CreateSound(soundSystem, "Sound\\Effect_Death.wav", FMOD_LOOP_OFF, 0, &Effect_DeathSound);
 
 	// 버퍼 생성
 	CreatebackBuffer();
@@ -83,7 +96,7 @@ bool CFramework::OnCreate(HINSTANCE hInstance, HWND hWnd, const RECT & rc, CNetw
 	//BuildScene();
 	// 최초의 씬은 무엇인가?
 	ChangeScene(CBaseScene::SceneTag::Title);
-	
+
 	return (m_hWnd != NULL);
 }
 
@@ -248,14 +261,27 @@ bool CFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 {
 	switch (nMessageID)
 	{
+	case WM_LBUTTONDOWN:	
+	case WM_RBUTTONDOWN:
+		if (m_pCurrScene == arrScene[CBaseScene::SceneTag::Title]) {
+			m_pCurrScene->OnProcessingMouseMessage(hWnd, nMessageID, wParam, lParam);
+			m_pCurrScene->UserInterface_Render(m_hDC);
+		}	
+		break;
 	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+		if (m_pCurrScene == arrScene[CBaseScene::SceneTag::Title]) {
+			m_pCurrScene->UserInterface_Render(m_hDC);
+			if(m_pCurrScene->OnProcessingMouseMessage(hWnd, nMessageID, wParam, lParam))
+				DialogBox(m_hInstance, MAKEINTRESOURCE(IDD_DIALOG1), NULL, (DLGPROC)DlgProc);	
+		}
 		break;
-	case WM_LBUTTONDOWN:
-		break;
-
 	case WM_MOUSEMOVE:
+		m_pCurrScene->OnProcessingMouseMessage(hWnd, nMessageID, wParam, lParam);
+		
 		break;
-
+	default:
+		break;
 	}
 	return false;
 }
@@ -310,7 +336,9 @@ void CFramework::Update(float fTimeElapsed)
 		if (pKeysBuffer[VK_RIGHT] & 0xF0) { dwDirection |= DIR_RIGHT; }
 
 		if ((pKeysBuffer['a'] & 0xF0) || (pKeysBuffer['A'] & 0xF0)) {
-			if (m_ppPlayer[m_pNetwork->m_myid]->GetState() != melee_attack) {
+			if (m_ppPlayer[m_pNetwork->m_myid]->GetState() != melee_attack && m_ppPlayer[m_pNetwork->m_myid]->GetAttackFrame() == 0) {
+				dwDirection = 0;
+				FMOD_System_PlaySound(soundSystem, Effect_SlashSound, NULL, 0, &EffectChannel);
 				m_ppPlayer[m_pNetwork->m_myid]->SetState(melee_attack);
 
 				int protocol;
@@ -324,7 +352,7 @@ void CFramework::Update(float fTimeElapsed)
 				m_pNetwork->SendPacket(&p);
 			}
 		}
-		if (dwDirection != 0) {
+		if (dwDirection != 0 && m_ppPlayer[m_pNetwork->m_myid]->GetState() != melee_attack) {
 			int protocol;
 			CS_Msg_Pos_Character p;
 			p.size = sizeof(p);
@@ -363,9 +391,14 @@ void CFramework::Update(float fTimeElapsed)
 //						}
 //				}
 //			}
+			if(m_ppPlayer[i]->GetAttackFrame() == 0 && m_ppPlayer[i]->GetState() == melee_attack)
+				if (i != m_pNetwork->m_myid)
+					FMOD_System_PlaySound(soundSystem, Effect_SlashSound, NULL, 0, &EffectChannel);
 			m_ppPlayer[i]->Update(fTimeElapsed);
 		}
 	}
+	if (m_pCurrScene != arrScene[CBaseScene::SceneTag::Main])
+		ZeroCurrentTime();
 	//m_pCurrScene->Update(fTimeElapsed);
 	//m_pNetwork->ReadPacket();
 
@@ -391,9 +424,8 @@ void CFramework::PreprocessingForDraw()
 
 	if (m_pCurrScene) m_pCurrScene->Render(m_hDC);
 	if (m_pCurrScene == arrScene[CBaseScene::SceneTag::Main]) {
-		for (int i = 0; i < MAX_USER; ++i) if (m_ppPlayer[i]) m_ppPlayer[i]->Render(m_hDC);
-	}
-	if (m_pCurrScene == arrScene[CBaseScene::SceneTag::Main]) {
+		for (int i = MAX_USER - 1; i >= 0; --i)
+			if (m_ppPlayer[i]) m_ppPlayer[i]->Render(m_hDC);
 #ifdef UNICODE
 		TCHAR buf[100];
 		for (int i = 0; i < MAX_USER; ++i) {
@@ -440,10 +472,12 @@ void CFramework::PreprocessingForDraw()
 				DrawFont(buf, 915, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 10, 0, TEXT("궁서체"), RGB(255, 255, 0));
 				if (GaugeImage) {
 					GaugeImage.Draw(m_hDC, 805, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 100, 15, 9, 0, 1, 8);	// 100 == MAX_HP
-					GaugeImage.Draw(m_hDC, 805, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), max(m_ppPlayer[i]->GetHP(),0), 15, 0, 0, 9, 8);
+					GaugeImage.Draw(m_hDC, 805, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), max(m_ppPlayer[i]->GetHP(), 1), 15, 0, 0, 9, 8);
 				}
 			}
 		}
+		//wsprintf(buf, TEXT("Time %d:%d"), static_cast<int>(m_CurrentTime) / 60, static_cast<int>(m_CurrentTime) % 60);
+		//DrawFont(buf, 605, 20, 30, 0, TEXT("궁서체"), RGB(255, 255, 255));
 #else
 		DrawFont(TEXT("HP"), 25, 30, 15, 0, TEXT("궁서체"), RGB(255, 0, 0));
 		sprintf(buf, TEXT("%d/%d"), m_ppPlayer[m_pNetwork->m_myid]->GetHP(), MAX_HP);
@@ -452,6 +486,41 @@ void CFramework::PreprocessingForDraw()
 		DrawFont(buf, 25, 75, 15, 0, TEXT("궁서체"), RGB(0, 255, 255));
 		sprintf(buf, TEXT("Score : %d"), m_ppPlayer[m_pNetwork->m_myid]->GetScore());
 		DrawFont(buf, 250, 75, 15, 0, TEXT("궁서체"), RGB(0, 255, 0));
+		for (int i = 0; i < MAX_USER; ++i) {
+			if (m_ppPlayer[i]) {
+				if (i == m_pNetwork->m_myid) continue;
+				sprintf(buf, TEXT("ID %d"), i);
+				DrawFont(buf, 805, 255 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 10, 0, TEXT("궁서체"), RGB(255, 127, 127));
+				DrawFont(TEXT("Score"), 915, 255 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 10, 0, TEXT("궁서체"), RGB(255, 255, 0));
+				sprintf(buf, TEXT("%d"), m_ppPlayer[i]->GetScore());
+				DrawFont(buf, 915, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 10, 0, TEXT("궁서체"), RGB(255, 255, 0));
+				if (GaugeImage) {
+					GaugeImage.Draw(m_hDC, 805, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), 100, 15, 9, 0, 1, 8);	// 100 == MAX_HP
+					GaugeImage.Draw(m_hDC, 805, 275 + (50 * ((i > m_pNetwork->m_myid) ? (i - 1) : i)), max(m_ppPlayer[i]->GetHP(), 0), 15, 0, 0, 9, 8);
+				}
+			}
+		}
+#endif
+	}
+	else if (m_pCurrScene == arrScene[CBaseScene::SceneTag::Title]) {
+#ifdef UNICODE	
+		TCHAR buf[100];
+		wsprintf(buf, TEXT("Lord of"));
+		DrawFont(buf, 100, 75, 100, 100, TEXT("궁서체"), RGB(70, 255, 127));
+		wsprintf(buf, TEXT("Slayers"));
+		DrawFont(buf, 300, 275, 100, 100, TEXT("궁서체"), RGB(70, 255, 127));
+		if (m_pCurrScene) m_pCurrScene->UserInterface_Render(m_hDC);
+		wsprintf(buf, TEXT("LOGIN"));
+		DrawFont(buf, 345, 575, 65, 50, TEXT("궁서체"), RGB(125, 100, 113));
+#else
+		char buf[100];
+		sprintf(buf, TEXT("Lord of"));
+		DrawFont(buf, 100, 75, 100, 100, TEXT("궁서체"), RGB(70, 255, 127));
+		sprintf(buf, TEXT("Slayers"));
+		DrawFont(buf, 300, 275, 100, 100, TEXT("궁서체"), RGB(70, 255, 127));
+		if (m_pCurrScene) m_pCurrScene->UserInterface_Render(m_hDC);
+		sprintf(buf, TEXT("LOGIN"));
+		DrawFont(buf, 345, 575, 65, 50, TEXT("궁서체"), RGB(125, 100, 113));
 #endif
 	}
 }
@@ -516,16 +585,9 @@ LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 	switch (nMessageID)
 	{
 	case WM_LBUTTONDOWN:
-		if (self->m_pCurrScene == self->arrScene[CBaseScene::SceneTag::Title]) {
-			//self->m_pCurrScene->Login();
-			DialogBox(hInst2, MAKEINTRESOURCE(IDD_DIALOG1), NULL, (DLGPROC)DlgProc);
-		}
-			break;
 	case WM_LBUTTONUP:
-
 	case WM_RBUTTONDOWN:
 	case WM_RBUTTONUP:
-
 	case WM_MOUSEMOVE:
 		self->OnProcessingMouseMessage(hWnd, nMessageID, wParam, lParam);
 		break;
@@ -551,8 +613,6 @@ LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 			HDC hdc = ::BeginPaint(hWnd, &ps);	// 이 디바이스 컨텍스트를 사용하겠다.
 			// hdc에서 이 함수를 통해 bitmap을 붙인다.
 
-			// CPU 단계에서 호출하는 거라 메시지 검사 부분 등이 굉장히 느리다.
-			// 따라서 윈도우 메시지는 더 빠른 게임을 위해서는 쓰지 않게 된다. 하지만 알아놓기는 해야한다.
 			// 픽메시지를 검사하고 트랜스메시지, 디스패치메시지에서 윈도우프로시저로 메시지를 넘겨준다.
 			//self->OnDraw(hdc);
 	
@@ -567,7 +627,6 @@ LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 	case WM_SOCKET:
 		switch (WSAGETSELECTEVENT(lParam)) {
 		case FD_READ:
-			//printf("fuck");
 			self->RecvPacket();
 			break;
 		}
@@ -581,31 +640,34 @@ LRESULT CFramework::WndProc(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 
 void CFramework::ChangeScene(CBaseScene::SceneTag tag)
 {
+	FMOD_Channel_Stop(BGM_channel);
 	m_pCurrScene = arrScene[tag];
+	switch (tag) {
+	case CBaseScene::SceneTag::Title:
+		FMOD_System_PlaySound(soundSystem, TitleSound, NULL, 0, &BGM_channel);
+		break;
+	case CBaseScene::SceneTag::Main:
+		FMOD_System_PlaySound(soundSystem, BattleSound, NULL, 0, &BGM_channel);
+		break;
+	}
 }
 
 void CFramework::RecvPacket()
 {
 	m_pNetwork->ReadPacket(m_pNetwork->m_mysocket);
 }
-HWND hwnd2;
-CFramework* self2 = ::GetUserDataPtr<CFramework*>(hwnd2);
+
 BOOL CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	
 	char id[255];
-	//std::ifstream in("ResourceImage\\info.txt");
 	int x, y, pw;
 	pw = 0;
 	int id_protocol, pw_protocol;
-	//if (!self2)
-		//return ::DefWindowProc(hDlg, uMsg, wParam, lParam);	// 메시지 처리를 OS에게 넘긴다.
 	switch (uMsg) {
 	case WM_INITDIALOG:
 		hEdit1 = GetDlgItem(hDlg, IDC_EDIT1);
 		hEdit2 = GetDlgItem(hDlg, IDC_EDIT2);
-		//SendMessage(hEdit1, EM_SETLIMITTEXT, BUFSIZE, 0);
-		//SendMessage(hEdit2, EM_SETLIMITTEXT, BUFSIZE, 0);
 		return TRUE;
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
@@ -623,17 +685,11 @@ BOOL CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			lp.size = sizeof(lp);
 			lp.type = CS_LOGIN_ID;
 			id_protocol = lp.type;
-			
-			
-			
+						
 			send(m_pNetwork->m_mysocket, (char*)&id_protocol, sizeof(id_protocol), 0);
 			m_pNetwork->SendPacket(&lp);
-			std::cout << lp.pw<<"  "<<lp.id<< std::endl;
-			
-			
-			EndDialog(hDlg, IDCANCEL);
-			
-			
+			std::cout << lp.pw<<" "<<lp.my_id<<""<<lp.id<< std::endl;
+			EndDialog(hDlg, IDCANCEL);		
 			break;
 		case IDCANCEL:
 			EndDialog(hDlg, IDCANCEL);

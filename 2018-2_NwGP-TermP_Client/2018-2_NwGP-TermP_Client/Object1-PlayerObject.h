@@ -58,6 +58,7 @@ public:
 	unsigned int GetScore() const { return m_nScore; }
 
 	int GetAttackDamage() const { return m_nAttackDamage; }
+	int GetAttackFrame() const { return AttackFrame; }
 
 	void SetState(ObjectState state) { m_State = state; }
 	ObjectState GetState() const { return m_State; }
