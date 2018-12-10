@@ -6,7 +6,7 @@
 #define SERVERPORT	9000
 #define BUFSIZE		512
 
-#define SERVERIP	"127.0.0.1"//"192.168.20.208"
+#define SERVERIP	"192.168.21.57"//"127.0.0.1"//
 #define WM_SOCKET	WM_USER+1
 #pragma once
 

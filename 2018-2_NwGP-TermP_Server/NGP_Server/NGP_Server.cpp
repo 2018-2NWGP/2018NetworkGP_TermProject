@@ -278,8 +278,11 @@ DWORD WINAPI ServerMain(LPVOID arg)
 			err_display("accept()");
 			break;
 		}
+		else {
+			printf("accept 성공\n");
+		}
 		//소켓 타임아웃 설정
-		DWORD recvTimeout = 5000;  // 5초.
+		DWORD recvTimeout = 1000;  // 5초.
 		setsockopt(client_sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
 
 		//// 접속한 클라이언트 정보 출력
@@ -345,6 +348,7 @@ DWORD WINAPI ServerMain(LPVOID arg)
 // 클라이언트와 데이터 통신
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
+	printf("해당 클라이언트 스레드 생성 성공\n");
 	//DisplayText("스레드 등록\n");
 	std::chrono::system_clock::time_point current_time;
 	std::chrono::duration<double> timeElapsed;
@@ -401,13 +405,13 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		//}
 		current_time = std::chrono::system_clock::now();
 		timeElapsed = std::chrono::system_clock::now() - current_time;
-		//EnterCriticalSection(&UserDataUpdateSection);
+		EnterCriticalSection(&UserDataUpdateSection);
 		if (timeElapsed.count() > MAX_FRAMETIME)
 		{		
 			for(int i = 0; i<MAX_USER; ++i)
 				g_ppPlayer[i]->Update(timeElapsed.count());				
 		}
-		//LeaveCriticalSection(&UserDataUpdateSection);
+		LeaveCriticalSection(&UserDataUpdateSection);
 		recvType = ReturnTypeNumber(client_sock);
 		if (!recvType) {
 			closesocket(client_sock);
@@ -492,25 +496,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 					send(g_clients[i].m_s, (char*)&temp2, sizeof(temp2), 0);
 			}
 
-			/*if((ObjectState)temp2.State == melee_attack)
-			for (int i = 0; i < MAX_USER; ++i) {
-				SC_Msg_Sync p;
-				p.size = sizeof(p);
-				p.type = SC_SYNC;
-				p.Chracter_id = i;
-				p.State = g_clients[i].m_state;
-				p.x = g_clients[i].m_x;
-				p.y = g_clients[i].m_y;
-				p.hp = g_clients[i].m_hp;
-
-				for (int j = 0; j < MAX_USER; ++j)
-				{
-					if (g_clients[j].m_isconnected) {
-						send(g_clients[j].m_s, (char*)&p, sizeof(p), 0);
-						printf("ID: %d, State: %d, x: %d, y: %d, hp: %d\n", p.Chracter_id, p.State, p.x, p.y, p.hp);
-					}
-				}
-			}*/
+			
 			recvType = -1;
 		}
 		if (recvType == CS_LOGIN_ID) {
