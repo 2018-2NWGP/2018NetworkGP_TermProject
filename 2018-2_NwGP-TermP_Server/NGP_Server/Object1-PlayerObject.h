@@ -12,7 +12,7 @@ private:
 	unsigned int m_nScore = 0;
 	bool WinTrigger = false;
 
-	double m_dMoveSpeed = 100.0;	// 이동속도
+	double m_dMoveSpeed = 250.0;	// 이동속도
 	float m_fWalkMotionSpeed = 5.0f;// 이동 애니메이션 속도
 	unsigned char WalkFrame = 0;	// 걷는 중 어느 이미지의 프레임을 그릴 지 사용
 	unsigned char WalkMotion = 0;	// 걷는 이미지 프레임을 결정짓기 위한 변수

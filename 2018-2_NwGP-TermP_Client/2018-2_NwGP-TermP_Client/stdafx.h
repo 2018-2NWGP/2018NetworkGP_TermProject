@@ -54,8 +54,8 @@
 #if _DEBUG
 #define MAX_FRAMETIME 0.0
 #else
-// #define MAX_FRAMETIME 1.0 / 60.0
-#define MAX_FRAMETIME 0.0
+#define MAX_FRAMETIME 1.0 / 60.0
+//#define MAX_FRAMETIME 0.0
 #endif
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
