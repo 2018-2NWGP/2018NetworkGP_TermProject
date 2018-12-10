@@ -13,6 +13,7 @@ private:
 	Vec2i * m_v2dBackgroundSize = nullptr;	// 벨트스크롤링을 하기 위한 백그라운드 크기 저장
 	CImage * Obj_Image = nullptr;
 
+	bool DrawBoxTrigger = false;
 	bool BGAllocated = false;	// 백그라운드 크기를 동적할당으로 저장중인지 여부를 판가름하는 flag 변수
 public:
 	Vector3D<unsigned char> m_vColor{ 0, 0, 0 };
@@ -23,6 +24,22 @@ public:
 
 	virtual void Update(float fTimeElapsed);
 	virtual void Render(HDC hdc);
+	void HitBoxDrawOn() {
+		if (DrawBoxTrigger)
+			DrawBoxTrigger = false;
+		else
+			DrawBoxTrigger = true;
+	}
+	virtual void DrawBox(HDC hdc) { 
+		if (DrawBoxTrigger) {
+			HPEN hPen, oldPen;
+			hPen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+			oldPen = (HPEN)SelectObject(hdc, hPen);
+			Rectangle(hdc, m_v2dPosition.x - (m_v2dSize.width / 2), m_v2dPosition.y - (m_v2dSize.height / 2), m_v2dPosition.x + (m_v2dSize.width / 2), m_v2dPosition.y + (m_v2dSize.height / 2));			
+			SelectObject(hdc, oldPen);
+			DeleteObject(hPen);
+		}
+	}
 
 	void SetPosition(unsigned int x = 0, unsigned int y = 0) { m_v2dPosition = { x, y }; }
 	void SetPosition(Vec2i position) { m_v2dPosition = position; }

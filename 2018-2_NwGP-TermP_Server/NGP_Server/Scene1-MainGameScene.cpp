@@ -30,6 +30,7 @@ void CMainScene::BuildObjects()
 			m_ppObjects[i]->SetPosition(x, y);
 			m_ppObjects[i]->SetSize(w, h);
 			//ERROR::::::왜 이게 주석처리이면 충돌체크가 안됨?
+			// i++ 때문이지.
 			printf("파일 로드 : %d 번째 충돌 오브젝트 위치 : (%d, %d) / 크기 : (%d, %d) 생성\n", i++, x, y, w, h);
 		}
 	}
@@ -59,7 +60,47 @@ void CMainScene::Update(float fTimeElapsed)
 				//	printf("%d번 플레이어가 %d번 플레이어에게 공격!\n", i, j);
 //#endif
 					m_ppPlayer[j]->HitByDamage(m_ppPlayer[i]->GetAttackDamage());
-					m_ppPlayer[i]->SetScore(m_ppPlayer[i]->GetScore() + 3);
+					if (m_ppPlayer[i]->GetWinTrigger() == false) {
+						m_ppPlayer[i]->SetScore(m_ppPlayer[i]->GetScore() + m_ppPlayer[i]->GetAttackDamage());
+						if (m_ppPlayer[j]->GetHP() <= 0) {
+							m_ppPlayer[i]->SetScore(m_ppPlayer[i]->GetScore() + 25);
+							std::random_device rd;
+							std::default_random_engine dre(rd());
+							std::uniform_int_distribution<> uid(0, 8);
+							int k = uid(dre);
+							switch (k) {
+							case 0:
+								m_ppPlayer[j]->SetPosition(400, 400);
+								break;
+							case 1:
+								m_ppPlayer[j]->SetPosition(2000, 2000);
+								break;
+							case 2:
+								m_ppPlayer[j]->SetPosition(2000, 400);
+								break;
+							case 3:
+								m_ppPlayer[j]->SetPosition(400, 2000);
+								break;
+							case 4:
+								m_ppPlayer[j]->SetPosition(1200, 560);
+								break;
+							case 5:
+								m_ppPlayer[j]->SetPosition(1200, 1840);
+								break;
+							case 6:
+								m_ppPlayer[j]->SetPosition(560, 1200);
+								break;
+							case 7:
+								m_ppPlayer[j]->SetPosition(1840, 1200);
+								break;
+							case 8:
+								m_ppPlayer[j]->SetPosition(1200, 1200);
+								break;
+							}
+							m_ppPlayer[j]->SetHP(75);
+						}
+						m_ppPlayer[i]->SetWinTrigger(m_ppPlayer[i]->GetScore() > WIN_CONDITION);
+					}
 					m_ppPlayer[i]->SetState((ObjectState)idle);
 					SC_Msg_Set_HP_Score p;
 					p.Character_id = j;

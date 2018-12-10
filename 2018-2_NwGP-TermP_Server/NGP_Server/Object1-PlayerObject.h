@@ -10,6 +10,7 @@ private:
 	int m_nHP = 100;	
 	int m_nAttackDamage = 3;
 	unsigned int m_nScore = 0;
+	bool WinTrigger = false;
 
 	double m_dMoveSpeed = 100.0;	// 이동속도
 	float m_fWalkMotionSpeed = 5.0f;// 이동 애니메이션 속도
@@ -72,5 +73,8 @@ public:
 	Vec2i GetWindowLB() { return { (unsigned int)window_left, (unsigned int)window_bottom }; }
 
 	bool RectAttackCollide(CBaseObject* Target);
+
+	bool GetWinTrigger() const { return WinTrigger; }
+	void SetWinTrigger(bool t) { WinTrigger = t; }
 };
 

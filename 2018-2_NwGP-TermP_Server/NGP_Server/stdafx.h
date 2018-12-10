@@ -120,3 +120,4 @@ enum ObjectState {
 	melee_attack = 2
 };
 
+#define WIN_CONDITION 150 // 승리조건 점수

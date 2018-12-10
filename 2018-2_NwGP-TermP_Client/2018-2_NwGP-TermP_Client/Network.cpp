@@ -63,9 +63,9 @@ void CNetwork::ProcessPacket(char *ptr)
 	{
 	case SC_SET_HP_SCORE:
 	{
-#ifdef USE_CONSOLE_WINDOW
-		printf("여기 들어오긴 하나요?\n");
-#endif
+//#ifdef USE_CONSOLE_WINDOW
+//		printf("여기 들어오긴 하나요?\n");
+//#endif
 		SC_Msg_Set_HP_Score *my_packet = reinterpret_cast<SC_Msg_Set_HP_Score *>(ptr);
 
 		m_ppPlayer[my_packet->Character_id]->SetHP(my_packet->hp);
@@ -99,16 +99,19 @@ void CNetwork::ProcessPacket(char *ptr)
 	case SC_POS_PLAYER:
 	{
 		SC_Msg_Pos_Character *my_packet = reinterpret_cast<SC_Msg_Pos_Character *>(ptr);
-#ifdef USE_CONSOLE_WINDOW
-		printf("%d번 플레이어 체력 : %d\n", my_packet->Character_id, my_packet->hp);
-#endif
 		m_ppPlayer[my_packet->Character_id]->SetDirectionBit(my_packet->dwDirection);
 		m_ppPlayer[my_packet->Character_id]->SetState(walking);
+		m_ppPlayer[my_packet->Character_id]->SetScore(my_packet->score);
+		m_ppPlayer[my_packet->Character_id]->SetHP(my_packet->hp);
 		m_ppPlayer[my_packet->Character_id]->SetPosition(my_packet->x, my_packet->y);
+		m_ppPlayer[my_packet->Character_id]->SetWinTrigger(my_packet->win_constraint);
 		m_ppPlayer[my_packet->Character_id]->Update(my_packet->timeElapsed);
+
 		m_pFramework->SetTimeElapsed(my_packet->timeElapsed);
 		m_pFramework->AddCurrentTime(my_packet->timeElapsed);
-
+//#ifdef USE_CONSOLE_WINDOW
+//		printf("%d번 플레이어 체력 : %d\n", my_packet->Character_id, my_packet->hp);
+//#endif
 		break;
 	}
 	case SC_CHANGE_STATE:
@@ -117,13 +120,7 @@ void CNetwork::ProcessPacket(char *ptr)
 
 		m_ppPlayer[my_packet->Character_id]->SetState((ObjectState)my_packet->State);
 		break;
-	}
-	//case SC_WINNER:
-	//{
-	//	SC_Msg_Winner *win_packet = reinterpret_cast<SC_Msg_Winner *>(ptr);
-	//	printf("점수 %d, 승리 %d", win_packet->score, win_packet->winner);
-	//	break;
-	//}
+	}	
 	case CS_LOGIN_ID:
 	{
 		CS_Msg_Demand_LoginID *my_packet = reinterpret_cast<CS_Msg_Demand_LoginID *>(ptr);

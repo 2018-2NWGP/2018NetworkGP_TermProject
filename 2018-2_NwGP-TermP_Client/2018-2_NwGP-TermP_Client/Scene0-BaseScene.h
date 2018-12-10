@@ -28,6 +28,7 @@ public:
 	virtual void BuildObjects() = 0;
 	virtual void Update(float fTimeElapsed) = 0;
 	virtual void Render(HDC hdc) = 0;
+	
 	virtual void UserInterface_Render(HDC hdc) = 0;
 
 	virtual bool ProcessInput(unsigned char* KeyBuffer) = 0;

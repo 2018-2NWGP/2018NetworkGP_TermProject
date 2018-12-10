@@ -401,7 +401,6 @@ void CFramework::Update(float fTimeElapsed)
 		ZeroCurrentTime();
 	//m_pCurrScene->Update(fTimeElapsed);
 	//m_pNetwork->ReadPacket();
-
 }
 
 void CFramework::SetBKColor(COLORREF color)
@@ -501,6 +500,17 @@ void CFramework::PreprocessingForDraw()
 			}
 		}
 #endif
+
+		for (int i = 0; i < MAX_USER; ++i)
+			if (m_ppPlayer[i])
+				if (m_ppPlayer[i]->GetWinTrigger()) {
+#ifdef UNICODE
+					wsprintf(buf, TEXT("Player %d Win!"), i);
+#else
+					sprintf(buf, TEXT("Player %d Win!"), i);
+#endif
+					DrawFont(buf, 1, 375, 75, 75, TEXT("±Ã¼­Ã¼"), RGB(255, 255, 127));
+				}
 	}
 	else if (m_pCurrScene == arrScene[CBaseScene::SceneTag::Title]) {
 #ifdef UNICODE	
@@ -508,7 +518,7 @@ void CFramework::PreprocessingForDraw()
 		wsprintf(buf, TEXT("Lord of"));
 		DrawFont(buf, 100, 75, 100, 100, TEXT("±Ã¼­Ã¼"), RGB(70, 255, 127));
 		wsprintf(buf, TEXT("Slayers"));
-		DrawFont(buf, 300, 275, 100, 100, TEXT("±Ã¼­Ã¼"), RGB(70, 255, 127));
+		DrawFont(buf, 250, 275, 100, 100, TEXT("±Ã¼­Ã¼"), RGB(70, 255, 127));
 		if (m_pCurrScene) m_pCurrScene->UserInterface_Render(m_hDC);
 		wsprintf(buf, TEXT("LOGIN"));
 		DrawFont(buf, 345, 575, 65, 50, TEXT("±Ã¼­Ã¼"), RGB(125, 100, 113));
@@ -523,6 +533,8 @@ void CFramework::PreprocessingForDraw()
 		DrawFont(buf, 345, 575, 65, 50, TEXT("±Ã¼­Ã¼"), RGB(125, 100, 113));
 #endif
 	}
+
+	
 }
 
 void CFramework::OnDraw(HDC hDC)

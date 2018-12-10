@@ -367,6 +367,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		}
 	}
 	int recvType{ 0 };
+	
 	while (true) {
 		//sync++;
 		////50ms마다 한번씩 위치 좌표 보내줌
@@ -402,12 +403,9 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		timeElapsed = std::chrono::system_clock::now() - current_time;
 		//EnterCriticalSection(&UserDataUpdateSection);
 		if (timeElapsed.count() > MAX_FRAMETIME)
-		{
-			
+		{		
 			for(int i = 0; i<MAX_USER; ++i)
-				g_ppPlayer[i]->Update(timeElapsed.count());
-			
-			
+				g_ppPlayer[i]->Update(timeElapsed.count());				
 		}
 		//LeaveCriticalSection(&UserDataUpdateSection);
 		recvType = ReturnTypeNumber(client_sock);
@@ -419,6 +417,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		//ProcessPacket(recvType);
 		int type, retVal{ 0 };
 		int size{ 0 };
+		
 		if (recvType == CS_MOVE) {
 			CS_Msg_Pos_Character temp;
 			retVal = recv(client_sock, (char*)&temp, sizeof(temp)+sizeof(int), 0);
@@ -427,7 +426,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			DWORD dwDirection = temp.dwDirection;
 			//DisplayText("%d,%d,%d,%d\n", temp.Character_id, temp.type, temp.x, temp.y);
 			timeElapsed = std::chrono::system_clock::now() - current_time;
-			
+			//printf("x, y : %d, %d\n", g_ppPlayer[temp.Character_id]->GetPosition().x, g_ppPlayer[temp.Character_id]->GetPosition().y);
 			if (timeElapsed.count() > MAX_FRAMETIME)
 			{
 				//dwDirection |= DIR_RIGHT;
@@ -451,12 +450,17 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			temp2.y = g_ppPlayer[temp.Character_id]->GetPosition().y;
 			temp2.timeElapsed = timeElapsed.count();
 			temp2.dwDirection = dwDirection;
+			temp2.hp = g_ppPlayer[temp.Character_id]->GetHP();	
+			temp2.score = g_ppPlayer[temp.Character_id]->GetScore();
+			g_ppPlayer[temp.Character_id]->SetWinTrigger(temp2.score > WIN_CONDITION);
+			temp2.win_constraint = g_ppPlayer[temp.Character_id]->GetWinTrigger();
 			temp2.size = sizeof(temp2);
 			temp2.type = SC_POS_PLAYER;
 			for (int i = 0; i < MAX_USER; ++i) {
 				if(g_clients[i].m_isconnected)
 					send(g_clients[i].m_s, (char*)&temp2, sizeof(temp2), 0);
 			}
+			
 			recvType = -1;
 		}
 		if (recvType == CS_CHANGE_STATE)

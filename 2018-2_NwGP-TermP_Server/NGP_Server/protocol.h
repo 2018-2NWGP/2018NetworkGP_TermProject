@@ -29,7 +29,9 @@ struct SC_Msg_Pos_Character : public Packet
 	int score;
 	int x;
 	int y;
+	bool win_constraint;
 };
+
 struct CS_Msg_Pos_Character : public Packet
 {
 	BYTE Character_id;
@@ -99,6 +101,8 @@ struct CS_Msg_Demand_LoginID : public Packet
 #define SC_CHANGE_STATE				  105
 #define SC_SYNC						  106
 #define SC_SET_HP_SCORE				  107
+#define SC_WINNER					  108
+
 //Client->Server
 #define CS_MOVE						  201
 #define CS_CHANGE_STATE				  202

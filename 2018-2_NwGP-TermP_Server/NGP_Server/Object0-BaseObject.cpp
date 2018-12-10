@@ -36,13 +36,13 @@ bool CBaseObject::RectCollide(Vec2i position, Vec2i size)
 
 bool CBaseObject::RectCollide(CBaseObject * other)
 {
-	if (m_v2dPosition.x - (m_v2dSize.width / 2) >= other->GetPosition().x + (other->GetSize().width / 2))
+	if (m_v2dPosition.x - (m_v2dSize.width / 2) > other->GetPosition().x + (other->GetSize().width / 2))
 		return false;
-	if (m_v2dPosition.x + (m_v2dSize.width / 2) <= other->GetPosition().x - (other->GetSize().width / 2))
+	if (m_v2dPosition.x + (m_v2dSize.width / 2) < other->GetPosition().x - (other->GetSize().width / 2))
 		return false;
-	if (m_v2dPosition.y - (m_v2dSize.height / 2) >= other->GetPosition().y + (other->GetSize().height / 2))
+	if (m_v2dPosition.y - (m_v2dSize.height / 2) > other->GetPosition().y + (other->GetSize().height / 2))
 		return false;
-	if (m_v2dPosition.y + (m_v2dSize.height / 2) <= other->GetPosition().y - (other->GetSize().height / 2))
+	if (m_v2dPosition.y + (m_v2dSize.height / 2) < other->GetPosition().y - (other->GetSize().height / 2))
 		return false;
 	return true;
 }
@@ -129,22 +129,20 @@ bool CBaseObject::ObstacleRectCollide(PlayerObject * player, double distance)
 	if (RectCollide(player)) {
 		if (player->GetDirectionBit() & DIR_UP) {
 			player->SetPosition(player->GetPosition().x, m_v2dPosition.y + (m_v2dSize.height / 2) + (player->GetSize().height / 2));
-			return true;
 		}
 		if (player->GetDirectionBit() & DIR_DOWN) {
 			player->SetPosition(player->GetPosition().x, m_v2dPosition.y - (m_v2dSize.height / 2) - (player->GetSize().height / 2));
-			return true;
 		}
 		if (player->GetDirectionBit() & DIR_LEFT) {
 			player->SetPosition(m_v2dPosition.x + (m_v2dSize.width / 2) + (player->GetSize().width / 2), player->GetPosition().y);
-			return true;
 		}
 		if (player->GetDirectionBit() & DIR_RIGHT) {
 			player->SetPosition(m_v2dPosition.x - (m_v2dSize.width / 2) - (player->GetSize().width / 2), player->GetPosition().y);
-			return true;
-		}	
+		}
+		return true;
 	}
 	*/
+	/*
 	if (RectCollide(player)) {
 		switch (player->GetDirection()) {
 		case 8:
@@ -198,6 +196,83 @@ bool CBaseObject::ObstacleRectCollide(PlayerObject * player, double distance)
 				player->SetPosY(max(static_cast<int>(player->GetPosition().y - distance), (player->GetSize().height / 2)));
 				//return true;
 			}
+			break;
+		}
+		return true;
+	}*/
+	/*
+	if (RectCollide(player)) {
+		switch (player->GetDirection()) {
+		case 8:
+			player->SetPosY(min(static_cast<int>(player->GetPosition().y + distance - 1), player->GetBackgroundSize().height - (player->GetSize().height / 2)));
+			break;
+		case 2:
+			player->SetPosY(max(static_cast<int>(player->GetPosition().y - distance + 1), (player->GetSize().height / 2)));
+			break;
+		case 4:
+			player->SetPosX(min(static_cast<int>(player->GetPosition().x + distance - 1), player->GetBackgroundSize().width - (player->GetSize().width / 2)));
+			break;
+		case 6:
+			player->SetPosX(max(static_cast<int>(player->GetPosition().x - distance + 1), (player->GetSize().width / 2)));
+			break;
+		case 7:
+			if (this->GetPosition().x + this->GetSize().width > player->GetPosition().x - (player->GetSize().width / 2))
+				if (this->GetPosition().y + this->GetSize().height > player->GetPosition().y - (player->GetSize().height / 2)) {
+					player->SetPosX(min(static_cast<int>(player->GetPosition().x + distance - 1), player->GetBackgroundSize().width - (player->GetSize().width / 2)));
+					player->SetPosY(min(static_cast<int>(player->GetPosition().y + distance - 1), player->GetBackgroundSize().height - (player->GetSize().height / 2)));
+				}
+			break;
+		case 9:
+			if (this->GetPosition().x - this->GetSize().width < player->GetPosition().x + (player->GetSize().width / 2))
+				if (this->GetPosition().y + this->GetSize().height > player->GetPosition().y - (player->GetSize().height / 2)) {
+					player->SetPosX(max(static_cast<int>(player->GetPosition().x - distance + 1), (player->GetSize().width / 2)));
+					player->SetPosY(min(static_cast<int>(player->GetPosition().y + distance - 1), player->GetBackgroundSize().height - (player->GetSize().height / 2)));
+				}
+			break;
+		case 1:
+			if (this->GetPosition().x + this->GetSize().width > player->GetPosition().x - (player->GetSize().width / 2))
+				if (this->GetPosition().y - this->GetSize().height < player->GetPosition().y + (player->GetSize().height / 2)) {
+					player->SetPosX(min(static_cast<int>(player->GetPosition().x + distance - 1), player->GetBackgroundSize().width - (player->GetSize().width / 2)));
+					player->SetPosY(max(static_cast<int>(player->GetPosition().y - distance + 1), (player->GetSize().height / 2)));
+				}
+			break;
+		case 3:
+			if (this->GetPosition().x - this->GetSize().width < player->GetPosition().x + (player->GetSize().width / 2))
+				if (this->GetPosition().y - this->GetSize().height < player->GetPosition().y + (player->GetSize().height / 2)) {
+					player->SetPosX(max(static_cast<int>(player->GetPosition().x - distance + 1), (player->GetSize().width / 2)));
+					player->SetPosY(max(static_cast<int>(player->GetPosition().y - distance), (player->GetSize().height / 2)));
+				}
+			break;
+		}
+		return true;
+	}
+	*/
+
+	if (RectCollide(player)) {
+		switch (player->GetDirection()) {
+		case 8:
+			player->SetPosY(player->GetPosition().y + distance + 1);
+			break;
+		case 2:
+			player->SetPosY(player->GetPosition().y - distance - 1);
+			break;
+		case 4:
+			player->SetPosX(player->GetPosition().x + distance + 1);
+			break;
+		case 6:
+			player->SetPosX(player->GetPosition().x - distance - 1);
+			break;
+		case 7:
+			player->SetPosition(player->GetPosition().x + (distance * 2), player->GetPosition().y + (distance * 2));
+			break;
+		case 9:
+			player->SetPosition(player->GetPosition().x - (distance * 2), player->GetPosition().y + (distance * 2));
+			break;
+		case 1:
+			player->SetPosition(player->GetPosition().x + (distance * 2), player->GetPosition().y - (distance * 2));
+			break;
+		case 3:			
+			player->SetPosition(player->GetPosition().x - (distance * 2), player->GetPosition().y - (distance * 2));
 			break;
 		}
 		return true;
